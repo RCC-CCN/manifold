@@ -650,13 +650,13 @@ Vec<Barycentric> Manifold::Impl::Subdivide(
         }
 
         const auto& subBary = subTris[tri].vertBary;
-        transform(subBary.begin() + subTris[tri].InteriorOffset(),
-                  subBary.end(), vertBary.begin() + interiorOffset[tri],
-                  [tri, rIdx](vec4 bary) {
-                    return Barycentric({tri,
-                                        {bary[rIdx[0]], bary[rIdx[1]],
-                                         bary[rIdx[2]], bary[rIdx[3]]}});
-                  });
+        std::transform(subBary.begin() + subTris[tri].InteriorOffset(),
+                       subBary.end(), vertBary.begin() + interiorOffset[tri],
+                       [tri, rIdx](vec4 bary) {
+                         return Barycentric({tri,
+                                             {bary[rIdx[0]], bary[rIdx[1]],
+                                              bary[rIdx[2]], bary[rIdx[3]]}});
+                       });
       });
   meshRelation_.triRef = triRef;
 

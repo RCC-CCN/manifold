@@ -524,14 +524,16 @@ Manifold::Impl Manifold::Impl::Transform(const mat3x4& transform_) const {
   result.vertPos_.resize(NumVert());
   result.faceNormal_.resize(faceNormal_.size());
   result.vertNormal_.resize(vertNormal_.size());
-  transform(vertPos_.begin(), vertPos_.end(), result.vertPos_.begin(),
-            Transform4x3({transform_}));
+  std::transform(vertPos_.begin(), vertPos_.end(), result.vertPos_.begin(),
+                 Transform4x3({transform_}));
 
   mat3 normalTransform = NormalTransform(transform_);
-  transform(faceNormal_.begin(), faceNormal_.end(), result.faceNormal_.begin(),
-            TransformNormals({normalTransform}));
-  transform(vertNormal_.begin(), vertNormal_.end(), result.vertNormal_.begin(),
-            TransformNormals({normalTransform}));
+  std::transform(faceNormal_.begin(), faceNormal_.end(),
+                 result.faceNormal_.begin(),
+                 TransformNormals({normalTransform}));
+  std::transform(vertNormal_.begin(), vertNormal_.end(),
+                 result.vertNormal_.begin(),
+                 TransformNormals({normalTransform}));
 
   const bool invert = la::determinant(mat3(transform_)) < 0;
 

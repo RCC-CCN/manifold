@@ -379,11 +379,11 @@ double Manifold::Impl::MinGap(const Manifold::Impl& other,
 
   other.GetFaceBoxMorton(faceBoxOther, faceMortonOther);
 
-  transform(faceBoxOther.begin(), faceBoxOther.end(), faceBoxOther.begin(),
-            [searchLength](const Box& box) {
-              return Box(box.min - vec3(searchLength),
-                         box.max + vec3(searchLength));
-            });
+  std::transform(faceBoxOther.begin(), faceBoxOther.end(), faceBoxOther.begin(),
+                 [searchLength](const Box& box) {
+                   return Box(box.min - vec3(searchLength),
+                              box.max + vec3(searchLength));
+                 });
 
   SparseIndices collisions = collider_.Collisions(faceBoxOther.cview());
 

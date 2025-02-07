@@ -228,39 +228,6 @@ void exclusive_scan(InputIter first, InputIter last, OutputIter d_first,
                  identity);
 }
 
-// Apply function `f` on the input range `[first, last)` and store the result in
-// the range starting from `d_first`.
-//
-// The input range `[first, last)` and
-// the output range `[d_first, d_first + last - first)`
-// must be equal or non-overlapping.
-template <typename InputIter, typename OutputIter, typename F>
-void transform(ExecutionPolicy policy, InputIter first, InputIter last,
-               OutputIter d_first, F f) {
-  static_assert(std::is_convertible_v<
-                    typename std::iterator_traits<InputIter>::iterator_category,
-                    std::random_access_iterator_tag>,
-                "You can only parallelize RandomAccessIterator.");
-  static_assert(
-      std::is_convertible_v<
-          typename std::iterator_traits<OutputIter>::iterator_category,
-          std::random_access_iterator_tag>,
-      "You can only parallelize RandomAccessIterator.");
-
-  std::transform(first, last, d_first, f);
-}
-
-// Apply function `f` on the input range `[first, last)` and store the result in
-// the range starting from `d_first`.
-//
-// The input range `[first, last)` and
-// the output range `[d_first, d_first + last - first)`
-// must be equal or non-overlapping.
-template <typename InputIter, typename OutputIter, typename F>
-void transform(InputIter first, InputIter last, OutputIter d_first, F f) {
-  transform(autoPolicy(first, last, 1e5), first, last, d_first, f);
-}
-
 // Copy the input range `[first, last)` to the output range
 // starting from `d_first`.
 //

@@ -190,15 +190,15 @@ std::shared_ptr<CsgLeafNode> CsgLeafNode::Compose(
         const int nextVert = vertIndices[i];
         const int nextEdge = edgeIndices[i];
         const int nextFace = triIndices[i];
-        transform(node->pImpl_->halfedge_.begin(),
-                  node->pImpl_->halfedge_.end(),
-                  combined.halfedge_.begin() + edgeIndices[i],
-                  [nextVert, nextEdge, nextFace](Halfedge edge) {
-                    edge.startVert += nextVert;
-                    edge.endVert += nextVert;
-                    edge.pairedHalfedge += nextEdge;
-                    return edge;
-                  });
+        std::transform(node->pImpl_->halfedge_.begin(),
+                       node->pImpl_->halfedge_.end(),
+                       combined.halfedge_.begin() + edgeIndices[i],
+                       [nextVert, nextEdge, nextFace](Halfedge edge) {
+                         edge.startVert += nextVert;
+                         edge.endVert += nextVert;
+                         edge.pairedHalfedge += nextEdge;
+                         return edge;
+                       });
 
         if (numPropOut > 0) {
           auto start =
@@ -206,11 +206,11 @@ std::shared_ptr<CsgLeafNode> CsgLeafNode::Compose(
           if (node->pImpl_->NumProp() > 0) {
             auto &triProp = node->pImpl_->meshRelation_.triProperties;
             const int nextProp = propVertIndices[i];
-            transform(triProp.begin(), triProp.end(), start,
-                      [nextProp](ivec3 tri) {
-                        tri += nextProp;
-                        return tri;
-                      });
+            std::transform(triProp.begin(), triProp.end(), start,
+                           [nextProp](ivec3 tri) {
+                             tri += nextProp;
+                             return tri;
+                           });
 
             const int numProp = node->pImpl_->NumProp();
             auto &oldProp = node->pImpl_->meshRelation_.properties;
@@ -268,13 +268,13 @@ std::shared_ptr<CsgLeafNode> CsgLeafNode::Compose(
         // important to add an offset so that each node instance gets
         // unique meshIDs.
         const int offset = i * Manifold::Impl::meshIDCounter_;
-        transform(node->pImpl_->meshRelation_.triRef.begin(),
-                  node->pImpl_->meshRelation_.triRef.end(),
-                  combined.meshRelation_.triRef.begin() + triIndices[i],
-                  [offset](TriRef ref) {
-                    ref.meshID += offset;
-                    return ref;
-                  });
+        std::transform(node->pImpl_->meshRelation_.triRef.begin(),
+                       node->pImpl_->meshRelation_.triRef.end(),
+                       combined.meshRelation_.triRef.begin() + triIndices[i],
+                       [offset](TriRef ref) {
+                         ref.meshID += offset;
+                         return ref;
+                       });
       });
 
   for (size_t i = 0; i < nodes.size(); i++) {

@@ -288,8 +288,8 @@ std::vector<Halfedge> PairUp(std::vector<EdgePos> &edgePos) {
                                [](EdgePos x) { return x.isStart; });
 
   auto cmp = [](EdgePos a, EdgePos b) { return a.edgePos < b.edgePos; };
-  std::std::stable_sort(edgePos.begin(), middle, cmp);
-  std::std::stable_sort(middle, edgePos.end(), cmp);
+  std::stable_sort(edgePos.begin(), middle, cmp);
+  std::stable_sort(middle, edgePos.end(), cmp);
   std::vector<Halfedge> edges;
   for (size_t i = 0; i < nEdges; ++i)
     edges.push_back({edgePos[i].vert, edgePos[i + nEdges].vert, -1});
@@ -696,14 +696,14 @@ Manifold::Impl Boolean3::Result(OpType op) const {
   Vec<int> i03(w03_.size());
   Vec<int> i30(w30_.size());
 
-  transform(x12_.begin(), x12_.end(), i12.begin(),
-            [c3](int v) { return c3 * v; });
-  transform(x21_.begin(), x21_.end(), i21.begin(),
-            [c3](int v) { return c3 * v; });
-  transform(w03_.begin(), w03_.end(), i03.begin(),
-            [c1, c3](int v) { return c1 + c3 * v; });
-  transform(w30_.begin(), w30_.end(), i30.begin(),
-            [c2, c3](int v) { return c2 + c3 * v; });
+  std::transform(x12_.begin(), x12_.end(), i12.begin(),
+                 [c3](int v) { return c3 * v; });
+  std::transform(x21_.begin(), x21_.end(), i21.begin(),
+                 [c3](int v) { return c3 * v; });
+  std::transform(w03_.begin(), w03_.end(), i03.begin(),
+                 [c1, c3](int v) { return c1 + c3 * v; });
+  std::transform(w30_.begin(), w30_.end(), i30.begin(),
+                 [c2, c3](int v) { return c2 + c3 * v; });
 
   Vec<int> vP2R(inP_.NumVert());
   exclusive_scan(i03.begin(), i03.end(), vP2R.begin(), 0, AbsSum());
