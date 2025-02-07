@@ -12,12 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#if (MANIFOLD_PAR == 1) && __has_include(<tbb/concurrent_priority_queue.h>)
-#include <tbb/tbb.h>
-#define TBB_PREVIEW_CONCURRENT_ORDERED_CONTAINERS 1
-#include <tbb/concurrent_priority_queue.h>
-#endif
-
 #include <algorithm>
 
 #include "./boolean3.h"
@@ -313,33 +307,7 @@ std::shared_ptr<CsgLeafNode> BatchBoolean(
   if (results.size() == 2)
     return SimpleBoolean(*results[0]->GetImpl(), *results[1]->GetImpl(),
                          operation);
-#if (MANIFOLD_PAR == 1) && __has_include(<tbb/tbb.h>)
-  tbb::task_group group;
-  tbb::concurrent_priority_queue<std::shared_ptr<CsgLeafNode>, MeshCompare>
-      queue(results.size());
-  for (auto result : results) {
-    queue.emplace(result);
-  }
-  results.clear();
-  std::function<void()> process = [&]() {
-    while (queue.size() > 1) {
-      std::shared_ptr<CsgLeafNode> a, b;
-      if (!queue.try_pop(a)) continue;
-      if (!queue.try_pop(b)) {
-        queue.push(a);
-        continue;
-      }
-      group.run([&, a, b]() {
-        queue.emplace(SimpleBoolean(*a->GetImpl(), *b->GetImpl(), operation));
-        return group.run(process);
-      });
-    }
-  };
-  group.run_and_wait(process);
-  std::shared_ptr<CsgLeafNode> r;
-  queue.try_pop(r);
-  return r;
-#endif
+
   // apply boolean operations starting from smaller meshes
   // the assumption is that boolean operations on smaller meshes is faster,
   // due to less data being copied and processed

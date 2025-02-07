@@ -23,10 +23,6 @@
 #include <intrin.h>
 #endif
 
-#if (MANIFOLD_PAR == 1)
-#include <tbb/combinable.h>
-#endif
-
 namespace manifold {
 
 namespace collider_internal {
@@ -217,23 +213,6 @@ struct SeqCollisionRecorder {
   SparseIndices& local() { return queryTri_; }
 };
 
-#if (MANIFOLD_PAR == 1)
-template <const bool inverted>
-struct ParCollisionRecorder {
-  tbb::combinable<SparseIndices>& store;
-  inline void record(int queryIdx, int leafIdx, SparseIndices& ind) const {
-    // Add may invoke something in parallel, and it may return in
-    // another thread, making thread local unsafe
-    // we need to explicitly forbid parallelization by passing a flag
-    if (inverted)
-      ind.Add(leafIdx, queryIdx, true);
-    else
-      ind.Add(queryIdx, leafIdx, true);
-  }
-  SparseIndices& local() { return store.local(); }
-};
-#endif
-
 struct BuildInternalBoxes {
   VecView<Box> nodeBBox_;
   VecView<int> counter_;
@@ -325,22 +304,7 @@ class Collider {
                   SparseIndices& queryTri) const {
     ZoneScoped;
     using collider_internal::FindCollision;
-#if (MANIFOLD_PAR == 1)
-    if (queriesIn.size() > collider_internal::kSequentialThreshold) {
-      tbb::combinable<SparseIndices> store;
-      for_each_n(
-          ExecutionPolicy::Par, countAt(0), queriesIn.size(),
-          FindCollision<T, selfCollision,
-                        collider_internal::ParCollisionRecorder<inverted>>{
-              queriesIn, nodeBBox_, internalChildren_, {store}});
 
-      std::vector<SparseIndices> tmp;
-      store.combine_each(
-          [&](SparseIndices& ind) { tmp.emplace_back(std::move(ind)); });
-      queryTri.FromIndices(tmp);
-      return;
-    }
-#endif
     for_each_n(ExecutionPolicy::Seq, countAt(0), queriesIn.size(),
                FindCollision<T, selfCollision,
                              collider_internal::SeqCollisionRecorder<inverted>>{

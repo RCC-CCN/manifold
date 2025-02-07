@@ -19,21 +19,9 @@
 #include <mutex>
 #include <unordered_map>
 
+#include "./parallel.h"
 #include "./vec.h"
 #include "manifold/common.h"
-
-#ifndef MANIFOLD_PAR
-#error "MANIFOLD_PAR must be defined to either 1 (parallel) or -1 (series)"
-#else
-#if (MANIFOLD_PAR != 1) && (MANIFOLD_PAR != -1)
-#define XSTR(x) STR(x)
-#define STR(x) #x
-#pragma message "Current value of MANIFOLD_PAR is: " XSTR(MANIFOLD_PAR)
-#error "MANIFOLD_PAR must be defined to either 1 (parallel) or -1 (series)"
-#endif
-#endif
-
-#include "./parallel.h"
 
 #if __has_include(<tracy/Tracy.hpp>)
 #include <tracy/Tracy.hpp>

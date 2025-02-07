@@ -118,9 +118,6 @@ struct SwappableEdge {
 };
 
 struct FlagStore {
-#if MANIFOLD_PAR == 1
-  tbb::combinable<std::vector<size_t>> store;
-#endif
   std::vector<size_t> s;
 
   template <typename Pred, typename F>
@@ -131,58 +128,8 @@ struct FlagStore {
     s.clear();
   }
 
-#if MANIFOLD_PAR == 1
-  template <typename Pred, typename F>
-  void run_par(size_t n, Pred pred, F f) {
-    // Test pred in parallel, store i into thread-local vectors when pred(i) is
-    // true. After testing pred, iterate and call f over the indices in
-    // ascending order by using a heap in a single thread
-    auto& store = this->store;
-    tbb::parallel_for(tbb::blocked_range<size_t>(0, n),
-                      [&store, &pred, f](const auto& r) {
-                        auto& local = store.local();
-                        for (auto i = r.begin(); i < r.end(); ++i) {
-                          if (pred(i)) local.push_back(i);
-                        }
-                      });
-
-    std::vector<std::vector<size_t>> stores;
-    // first index: index within the vector
-    // second index: vector index within stores
-    using P = std::pair<size_t, size_t>;
-    auto cmp = [&stores](P a, P b) {
-      return stores[a.second][a.first] < stores[b.second][b.first];
-    };
-    std::vector<P> s;
-
-    store.combine_each([&stores, &s, &cmp](std::vector<size_t>& local) {
-      if (local.empty()) return;
-      stores.emplace_back(std::move(local));
-      s.push_back(std::make_pair(0, stores.size() - 1));
-      std::push_heap(s.begin(), s.end(), cmp);
-    });
-    while (!s.empty()) {
-      std::pop_heap(s.begin(), s.end());
-      auto [a, b] = s.back();
-      auto i = stores[b][a];
-      if (a + 1 == stores[b].size()) {
-        s.pop_back();
-      } else {
-        s.back().first++;
-        std::push_heap(s.begin(), s.end(), cmp);
-      }
-      f(i);
-    }
-  }
-#endif
-
   template <typename Pred, typename F>
   void run(size_t n, Pred pred, F f) {
-#if MANIFOLD_PAR == 1
-    if (n > 1e5) {
-      run_par(n, pred, f);
-    } else
-#endif
     {
       run_seq(n, pred, f);
     }
@@ -211,29 +158,6 @@ void Manifold::Impl::CleanupTopology() {
 
     const size_t nbEdges = halfedge_.size();
     size_t numFlagged = 0;
-
-#if MANIFOLD_PAR == 1
-    if (nbEdges > 1e5) {
-      // Note that this is slightly different from the single thread version
-      // because we store all indices instead of just indices of forward
-      // halfedges. Backward halfedges are placed at the end by modifying the
-      // comparison function.
-      entries.resize_nofill(nbEdges);
-      sequence(entries.begin(), entries.end());
-      stable_sort(entries.begin(), entries.end(), [&](int a, int b) {
-        const auto& self = halfedge_[a];
-        const auto& other = halfedge_[b];
-        // place all backward edges at the end
-        if (!self.IsForward()) return false;
-        if (!other.IsForward()) return true;
-        // dictionary order based on start and end vertices
-        return self.startVert == other.startVert
-                   ? self.endVert < other.endVert
-                   : self.startVert < other.startVert;
-      });
-      entries.resize(nbEdges / 2);
-    } else
-#endif
     {
       entries.clear(true);
       entries.reserve(nbEdges / 2);

@@ -12,11 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#if (MANIFOLD_PAR == 1) && __has_include(<tbb/concurrent_map.h>)
-#include <tbb/tbb.h>
-#define TBB_PREVIEW_CONCURRENT_ORDERED_CONTAINERS 1
-#include <tbb/concurrent_map.h>
-#endif
 #include <unordered_set>
 
 #include "./impl.h"
@@ -129,45 +124,6 @@ void Manifold::Impl::Face2Tri(const Vec<int>& faceEdge,
                       halfedge_.cbegin() + faceEdge[face + 1], projection);
     return TriangulateIdx(polys, epsilon_);
   };
-#if (MANIFOLD_PAR == 1) && __has_include(<tbb/tbb.h>)
-  tbb::task_group group;
-  // map from face to triangle
-  tbb::concurrent_unordered_map<int, std::vector<ivec3>> results;
-  Vec<size_t> triCount(faceEdge.size());
-  triCount.back() = 0;
-  // precompute number of triangles per face, and launch async tasks to
-  // triangulate complex faces
-  for_each(autoPolicy(faceEdge.size(), 1e5), countAt(0_uz),
-           countAt(faceEdge.size() - 1), [&](size_t face) {
-             triCount[face] = faceEdge[face + 1] - faceEdge[face] - 2;
-             
-             if (triCount[face] > 2)
-               group.run([&, face] {
-                 std::vector<ivec3> newTris = generalTriangulation(face);
-                 triCount[face] = newTris.size();
-                 results[face] = std::move(newTris);
-               });
-           });
-  group.wait();
-  // prefix sum computation (assign unique index to each face) and preallocation
-  exclusive_scan(triCount.begin(), triCount.end(), triCount.begin(), 0_uz);
-  triVerts.resize(triCount.back());
-  triNormal.resize(triCount.back());
-  triRef.resize(triCount.back());
-
-  auto processFace2 = std::bind(
-      processFace, [&](size_t face) { return std::move(results[face]); },
-      [&](size_t face, ivec3 tri, vec3 normal, TriRef r) {
-        triVerts[triCount[face]] = tri;
-        triNormal[triCount[face]] = normal;
-        triRef[triCount[face]] = r;
-        triCount[face]++;
-      },
-      std::placeholders::_1);
-  // set triangles in parallel
-  for_each(autoPolicy(faceEdge.size(), 1e4), countAt(0_uz),
-           countAt(faceEdge.size() - 1), processFace2);
-#else
   triVerts.reserve(faceEdge.size());
   triNormal.reserve(faceEdge.size());
   triRef.reserve(faceEdge.size());
@@ -182,7 +138,6 @@ void Manifold::Impl::Face2Tri(const Vec<int>& faceEdge,
   for (size_t face = 0; face < faceEdge.size() - 1; ++face) {
     processFace2(face);
   }
-#endif
 
   faceNormal_ = std::move(triNormal);
   CreateHalfedges(triVerts);
