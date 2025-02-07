@@ -336,50 +336,6 @@ bool all_of(InputIter first, InputIter last, P pred) {
   return all_of(autoPolicy(first, last, 1e5), first, last, pred);
 }
 
-// Copy values in the input range `[first, last)` to the output range
-// starting from `d_first` that satisfies the predicate `pred`,
-// i.e. `pred(x) == true`, and returns `d_first + n` where `n` is the number of
-// times the predicate is evaluated to true.
-//
-// This function is stable, meaning that the relative order of elements in the
-// output range remains unchanged.
-//
-// The input range `[first, last)` and
-// the output range `[d_first, d_first + last - first)`
-// must not overlap.
-template <typename InputIter, typename OutputIter, typename P>
-OutputIter copy_if(ExecutionPolicy policy, InputIter first, InputIter last,
-                   OutputIter d_first, P pred) {
-  static_assert(std::is_convertible_v<
-                    typename std::iterator_traits<InputIter>::iterator_category,
-                    std::random_access_iterator_tag>,
-                "You can only parallelize RandomAccessIterator.");
-  static_assert(
-      std::is_convertible_v<
-          typename std::iterator_traits<OutputIter>::iterator_category,
-          std::random_access_iterator_tag>,
-      "You can only parallelize RandomAccessIterator.");
-
-  return std::copy_if(first, last, d_first, pred);
-}
-
-// Copy values in the input range `[first, last)` to the output range
-// starting from `d_first` that satisfies the predicate `pred`, i.e. `pred(x) ==
-// true`, and returns `d_first + n` where `n` is the number of times the
-// predicate is evaluated to true.
-//
-// This function is stable, meaning that the relative order of elements in the
-// output range remains unchanged.
-//
-// The input range `[first, last)` and
-// the output range `[d_first, d_first + last - first)`
-// must not overlap.
-template <typename InputIter, typename OutputIter, typename P>
-OutputIter copy_if(InputIter first, InputIter last, OutputIter d_first,
-                   P pred) {
-  return copy_if(autoPolicy(first, last, 1e5), first, last, d_first, pred);
-}
-
 // Remove values in the input range `[first, last)` that satisfies
 // the predicate `pred`, i.e. `pred(x) == true`, and returns `first + n`
 // where `n` is the number of times the predicate is evaluated to false.

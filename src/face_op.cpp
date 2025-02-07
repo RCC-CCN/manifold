@@ -243,7 +243,7 @@ Polygons Manifold::Impl::Project() const {
   const mat2x3 projection = GetAxisAlignedProjection({0, 0, 1});
   Vec<Halfedge> cusps(NumEdge());
   cusps.resize(
-      copy_if(
+      std::copy_if(
           halfedge_.cbegin(), halfedge_.cend(), cusps.begin(),
           [&](Halfedge edge) {
             return faceNormal_[halfedge_[edge.pairedHalfedge].pairedHalfedge /

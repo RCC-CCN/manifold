@@ -464,8 +464,8 @@ std::vector<Manifold> Manifold::Decompose() const {
 
     Vec<int> vertNew2Old(numVert);
     const int nVert =
-        copy_if(countAt(0), countAt(numVert), vertNew2Old.begin(),
-                [i, &vertLabel](int v) { return vertLabel[v] == i; }) -
+        std::copy_if(countAt(0), countAt(numVert), vertNew2Old.begin(),
+                     [i, &vertLabel](int v) { return vertLabel[v] == i; }) -
         vertNew2Old.begin();
     impl->vertPos_.resize(nVert);
     vertNew2Old.resize(nVert);
@@ -475,10 +475,10 @@ std::vector<Manifold> Manifold::Decompose() const {
     Vec<int> faceNew2Old(NumTri());
     const auto& halfedge = pImpl_->halfedge_;
     const int nFace =
-        copy_if(countAt(0_uz), countAt(NumTri()), faceNew2Old.begin(),
-                [i, &vertLabel, &halfedge](int face) {
-                  return vertLabel[halfedge[3 * face].startVert] == i;
-                }) -
+        std::copy_if(countAt(0_uz), countAt(NumTri()), faceNew2Old.begin(),
+                     [i, &vertLabel, &halfedge](int face) {
+                       return vertLabel[halfedge[3 * face].startVert] == i;
+                     }) -
         faceNew2Old.begin();
 
     if (nFace == 0) continue;

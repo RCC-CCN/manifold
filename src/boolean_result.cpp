@@ -162,9 +162,9 @@ std::tuple<Vec<int>, Vec<int>> SizeOutput(
     return std::numeric_limits<size_t>::max();
   });
 
-  auto next =
-      copy_if(faceIds, faceIds + inP.faceNormal_.size(), tmpBuffer.begin(),
-              [](size_t v) { return v != std::numeric_limits<size_t>::max(); });
+  auto next = std::copy_if(
+      faceIds, faceIds + inP.faceNormal_.size(), tmpBuffer.begin(),
+      [](size_t v) { return v != std::numeric_limits<size_t>::max(); });
 
   gather(tmpBuffer.begin(), next, inP.faceNormal_.begin(),
          outR.faceNormal_.begin());
@@ -174,9 +174,9 @@ std::tuple<Vec<int>, Vec<int>> SizeOutput(
         if (sidesPerFacePQ[i + inP.faceNormal_.size()] > 0) return i;
         return std::numeric_limits<size_t>::max();
       });
-  auto end =
-      copy_if(faceIdsQ, faceIdsQ + inQ.faceNormal_.size(), next,
-              [](size_t v) { return v != std::numeric_limits<size_t>::max(); });
+  auto end = std::copy_if(
+      faceIdsQ, faceIdsQ + inQ.faceNormal_.size(), next,
+      [](size_t v) { return v != std::numeric_limits<size_t>::max(); });
 
   if (invertQ) {
     gather(next, end,

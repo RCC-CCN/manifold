@@ -161,9 +161,10 @@ class SparseIndices {
     Vec<size_t> new2Old(S.size());
     sequence(new2Old.begin(), new2Old.end());
 
-    size_t size = copy_if(countAt(0_uz), countAt(S.size()), new2Old.begin(),
-                          [&S](const size_t i) { return S[i] != 0; }) -
-                  new2Old.begin();
+    size_t size =
+        std::copy_if(countAt(0_uz), countAt(S.size()), new2Old.begin(),
+                     [&S](const size_t i) { return S[i] != 0; }) -
+        new2Old.begin();
     new2Old.resize(size);
 
     Permute(S, new2Old);
@@ -179,9 +180,10 @@ class SparseIndices {
   template <typename T>
   size_t KeepFinite(Vec<T>& v, Vec<int>& x) {
     Vec<int> new2Old(v.size());
-    size_t size = copy_if(countAt(0_uz), countAt(v.size()), new2Old.begin(),
-                          [&v](size_t i) { return FirstFinite(v[i]); }) -
-                  new2Old.begin();
+    size_t size =
+        std::copy_if(countAt(0_uz), countAt(v.size()), new2Old.begin(),
+                     [&v](size_t i) { return FirstFinite(v[i]); }) -
+        new2Old.begin();
     new2Old.resize(size);
 
     Permute(v, new2Old);
