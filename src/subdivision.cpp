@@ -555,8 +555,8 @@ Vec<Barycentric> Manifold::Impl::Subdivide(
   }
 
   Vec<int> edgeOffset(numEdge);
-  exclusive_scan(edgeAdded.begin(), edgeAdded.end(), edgeOffset.begin(),
-                 numVert);
+  std::exclusive_scan(edgeAdded.begin(), edgeAdded.end(), edgeOffset.begin(),
+                      numVert);
 
   Vec<Barycentric> vertBary(edgeOffset.back() + edgeAdded.back());
   const int totalEdgeAdded = vertBary.size() - numVert;
@@ -599,17 +599,17 @@ Vec<Barycentric> Manifold::Impl::Subdivide(
       TransformIterator(subTris.begin(), [](const Partition& part) {
         return static_cast<int>(part.triVert.size());
       });
-  manifold::exclusive_scan(numSubTris, numSubTris + numTri, triOffset.begin(),
-                           0);
+  manifold::std::exclusive_scan(numSubTris, numSubTris + numTri,
+                                triOffset.begin(), 0);
 
   Vec<int> interiorOffset(numTri);
   auto numInterior =
       TransformIterator(subTris.begin(), [](const Partition& part) {
         return static_cast<int>(part.NumInterior());
       });
-  manifold::exclusive_scan(numInterior, numInterior + numTri,
-                           interiorOffset.begin(),
-                           static_cast<int>(vertBary.size()));
+  manifold::std::exclusive_scan(numInterior, numInterior + numTri,
+                                interiorOffset.begin(),
+                                static_cast<int>(vertBary.size()));
 
   Vec<ivec3> triVerts(triOffset.back() + subTris.back().triVert.size());
   vertBary.resize(interiorOffset.back() + subTris.back().NumInterior());

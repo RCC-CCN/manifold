@@ -149,8 +149,8 @@ std::tuple<Vec<int>, Vec<int>> SizeOutput(
   auto keepFace = TransformIterator(sidesPerFacePQ.begin(),
                                     [](int x) { return x > 0 ? 1 : 0; });
 
-  inclusive_scan(keepFace, keepFace + sidesPerFacePQ.size(),
-                 facePQ2R.begin() + 1);
+  std::inclusive_scan(keepFace, keepFace + sidesPerFacePQ.size(),
+                      facePQ2R.begin() + 1);
   int numFaceR = facePQ2R.back();
   facePQ2R.resize(inP.NumTri() + inQ.NumTri());
 
@@ -189,7 +189,7 @@ std::tuple<Vec<int>, Vec<int>> SizeOutput(
 
   auto newEnd = std::remove(sidesPerFacePQ.begin(), sidesPerFacePQ.end(), 0);
   Vec<int> faceEdge(newEnd - sidesPerFacePQ.begin() + 1, 0);
-  inclusive_scan(sidesPerFacePQ.begin(), newEnd, faceEdge.begin() + 1);
+  std::inclusive_scan(sidesPerFacePQ.begin(), newEnd, faceEdge.begin() + 1);
   outR.halfedge_.resize(faceEdge.back());
 
   return std::make_tuple(faceEdge, facePQ2R);
@@ -706,25 +706,27 @@ Manifold::Impl Boolean3::Result(OpType op) const {
                  [c2, c3](int v) { return c2 + c3 * v; });
 
   Vec<int> vP2R(inP_.NumVert());
-  exclusive_scan(i03.begin(), i03.end(), vP2R.begin(), 0, AbsSum());
+  std::exclusive_scan(i03.begin(), i03.end(), vP2R.begin(), 0, AbsSum());
   int numVertR = AbsSum()(vP2R.back(), i03.back());
   const int nPv = numVertR;
 
   Vec<int> vQ2R(inQ_.NumVert());
-  exclusive_scan(i30.begin(), i30.end(), vQ2R.begin(), numVertR, AbsSum());
+  std::exclusive_scan(i30.begin(), i30.end(), vQ2R.begin(), numVertR, AbsSum());
   numVertR = AbsSum()(vQ2R.back(), i30.back());
   const int nQv = numVertR - nPv;
 
   Vec<int> v12R(v12_.size());
   if (v12_.size() > 0) {
-    exclusive_scan(i12.begin(), i12.end(), v12R.begin(), numVertR, AbsSum());
+    std::exclusive_scan(i12.begin(), i12.end(), v12R.begin(), numVertR,
+                        AbsSum());
     numVertR = AbsSum()(v12R.back(), i12.back());
   }
   const int n12 = numVertR - nPv - nQv;
 
   Vec<int> v21R(v21_.size());
   if (v21_.size() > 0) {
-    exclusive_scan(i21.begin(), i21.end(), v21R.begin(), numVertR, AbsSum());
+    std::exclusive_scan(i21.begin(), i21.end(), v21R.begin(), numVertR,
+                        AbsSum());
     numVertR = AbsSum()(v21R.back(), i21.back());
   }
   const int n21 = numVertR - nPv - nQv - n12;

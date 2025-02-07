@@ -298,8 +298,9 @@ std::pair<Vec<Halfedge>, Vec<vec3>> QuickHull::buildMesh(double epsilon) {
              AtomicAdd(counts[halfedges[3 * i + 2].startVert], 1);
            });
   auto saturate = [](int c) { return c > 0 ? 1 : 0; };
-  exclusive_scan(TransformIterator(counts.begin(), saturate),
-                 TransformIterator(counts.end(), saturate), counts.begin(), 0);
+  std::exclusive_scan(TransformIterator(counts.begin(), saturate),
+                      TransformIterator(counts.end(), saturate), counts.begin(),
+                      0);
   Vec<vec3> vertices(counts.back());
   for_each(autoPolicy(originalVertexData.size()), countAt(0_uz),
            countAt(originalVertexData.size()), [&](size_t i) {

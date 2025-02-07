@@ -304,7 +304,7 @@ void Manifold::Impl::CompactProps() {
   for_each(policy, meshRelation_.triProperties.cbegin(),
            meshRelation_.triProperties.cend(), MarkProp({keep}));
   Vec<int> propOld2New(numVerts + 1, 0);
-  inclusive_scan(keep.begin(), keep.end(), propOld2New.begin() + 1);
+  std::inclusive_scan(keep.begin(), keep.end(), propOld2New.begin() + 1);
 
   Vec<double> oldProp = meshRelation_.properties;
   const int numVertsNew = propOld2New[numVerts];
