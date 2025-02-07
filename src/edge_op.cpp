@@ -166,7 +166,7 @@ void Manifold::Impl::CleanupTopology() {
           entries.push_back(i);
         }
       }
-      stable_sort(entries.begin(), entries.end(), [&](int a, int b) {
+      std::stable_sort(entries.begin(), entries.end(), [&](int a, int b) {
         const auto& self = halfedge_[a];
         const auto& other = halfedge_[b];
         // dictionary order based on start and end vertices

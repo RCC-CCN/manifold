@@ -89,7 +89,7 @@ class SparseIndices {
 
   void Sort() {
     VecView<int64_t> view = AsVec64();
-    stable_sort(view.begin(), view.end());
+    std::stable_sort(view.begin(), view.end());
   }
 
   void Resize(size_t size) { data_.resize(size * sizeof(int64_t), -1); }
@@ -153,7 +153,7 @@ class SparseIndices {
   void Unique() {
     Sort();
     VecView<int64_t> view = AsVec64();
-    size_t newSize = unique(view.begin(), view.end()) - view.begin();
+    size_t newSize = std::unique(view.begin(), view.end()) - view.begin();
     Resize(newSize);
   }
 

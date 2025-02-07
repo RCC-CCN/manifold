@@ -288,8 +288,8 @@ std::vector<Halfedge> PairUp(std::vector<EdgePos> &edgePos) {
                                [](EdgePos x) { return x.isStart; });
 
   auto cmp = [](EdgePos a, EdgePos b) { return a.edgePos < b.edgePos; };
-  std::stable_sort(edgePos.begin(), middle, cmp);
-  std::stable_sort(middle, edgePos.end(), cmp);
+  std::std::stable_sort(edgePos.begin(), middle, cmp);
+  std::std::stable_sort(middle, edgePos.end(), cmp);
   std::vector<Halfedge> edges;
   for (size_t i = 0; i < nEdges; ++i)
     edges.push_back({edgePos[i].vert, edgePos[i + nEdges].vert, -1});

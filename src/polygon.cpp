@@ -700,10 +700,10 @@ class EarClip {
     Vec<int> vertNew2Old(numVert);
     sequence(vertNew2Old.begin(), vertNew2Old.end());
 
-    stable_sort(vertNew2Old.begin(), vertNew2Old.end(),
-                [&vertMorton](const int a, const int b) {
-                  return vertMorton[a] < vertMorton[b];
-                });
+    std::stable_sort(vertNew2Old.begin(), vertNew2Old.end(),
+                     [&vertMorton](const int a, const int b) {
+                       return vertMorton[a] < vertMorton[b];
+                     });
     Permute(vertMorton, vertNew2Old);
     Permute(vertBox, vertNew2Old);
     Permute(itr, vertNew2Old);

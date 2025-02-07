@@ -167,7 +167,7 @@ bool Manifold::Impl::Is2Manifold() const {
   if (!IsManifold()) return false;
 
   Vec<Halfedge> halfedge(halfedge_);
-  stable_sort(halfedge.begin(), halfedge.end());
+  std::stable_sort(halfedge.begin(), halfedge.end());
 
   return std::all_of(
       countAt(0_uz), countAt(2 * NumEdge() - 1), [&halfedge](size_t edge) {
