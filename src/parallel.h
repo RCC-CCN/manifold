@@ -317,21 +317,6 @@ void copy_n(InputIter first, size_t n, OutputIter d_first) {
   copy(autoPolicy(n, 1e6), first, first + n, d_first);
 }
 
-// Count the number of elements in the input range `[first, last)` satisfying
-// predicate `pred`, i.e. `pred(x) == true`.
-template <typename InputIter, typename P>
-size_t count_if(ExecutionPolicy policy, InputIter first, InputIter last,
-                P pred) {
-  return std::count_if(first, last, pred);
-}
-
-// Count the number of elements in the input range `[first, last)` satisfying
-// predicate `pred`, i.e. `pred(x) == true`.
-template <typename InputIter, typename P>
-size_t count_if(InputIter first, InputIter last, P pred) {
-  return count_if(autoPolicy(first, last, 1e4), first, last, pred);
-}
-
 // Check if all elements in the input range `[first, last)` satisfy
 // predicate `pred`, i.e. `pred(x) == true`.
 template <typename InputIter, typename P>

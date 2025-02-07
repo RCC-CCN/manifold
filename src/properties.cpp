@@ -238,7 +238,7 @@ bool Manifold::Impl::MatchesTriNormals() const {
  */
 int Manifold::Impl::NumDegenerateTris() const {
   if (halfedge_.size() == 0 || faceNormal_.size() != NumTri()) return true;
-  return count_if(
+  return std::count_if(
       countAt(0_uz), countAt(NumTri()),
       CheckCCW({halfedge_, vertPos_, faceNormal_, -1 * epsilon_ / 2}));
 }
