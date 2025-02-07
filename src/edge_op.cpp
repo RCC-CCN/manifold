@@ -222,7 +222,6 @@ void Manifold::Impl::SimplifyTopology() {
   }
 
   const size_t nbEdges = halfedge_.size();
-  auto policy = autoPolicy(nbEdges, 1e5);
   size_t numFlagged = 0;
 
   std::vector<int> scratchBuffer;

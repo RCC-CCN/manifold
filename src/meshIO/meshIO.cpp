@@ -21,7 +21,6 @@
 #include "assimp/material.h"
 #include "assimp/postprocess.h"
 #include "assimp/scene.h"
-#include "manifold/optional_assert.h"
 
 #ifndef AI_MATKEY_ROUGHNESS_FACTOR
 #include "assimp/pbrmaterial.h"

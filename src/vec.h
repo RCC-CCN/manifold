@@ -57,24 +57,22 @@ class Vec : public VecView<T> {
   Vec(const VecView<const T> &vec) {
     this->size_ = vec.size();
     this->capacity_ = this->size_;
-    auto policy = autoPolicy(this->size_);
     if (this->size_ != 0) {
       this->ptr_ = reinterpret_cast<T *>(malloc(this->size_ * sizeof(T)));
 
       TracyAllocS(this->ptr_, this->size_ * sizeof(T), 3);
-      std::copy(policy, vec.begin(), vec.end(), this->ptr_);
+      std::copy(vec.begin(), vec.end(), this->ptr_);
     }
   }
 
   Vec(const std::vector<T> &vec) {
     this->size_ = vec.size();
     this->capacity_ = this->size_;
-    auto policy = autoPolicy(this->size_);
     if (this->size_ != 0) {
       this->ptr_ = reinterpret_cast<T *>(malloc(this->size_ * sizeof(T)));
 
       TracyAllocS(this->ptr_, this->size_ * sizeof(T), 3);
-      std::copy(policy, vec.begin(), vec.end(), this->ptr_);
+      std::copy(vec.begin(), vec.end(), this->ptr_);
     }
   }
 
@@ -164,8 +162,7 @@ class Vec : public VecView<T> {
 
       TracyAllocS(newBuffer, n * sizeof(T), 3);
       if (this->size_ > 0)
-        std::copy(seq ? ExecutionPolicy::Seq : autoPolicy(this->size_),
-                  this->ptr_, this->ptr_ + this->size_, newBuffer);
+        std::copy(this->ptr_, this->ptr_ + this->size_, newBuffer);
       if (this->ptr_ != nullptr) {
         TracyFreeS(this->ptr_, 3);
         free(this->ptr_);
@@ -179,8 +176,7 @@ class Vec : public VecView<T> {
     bool shrink = this->size_ > 2 * newSize;
     reserve(newSize);
     if (this->size_ < newSize) {
-      std::fill(autoPolicy(newSize - this->size_), this->ptr_ + this->size_,
-                this->ptr_ + newSize, val);
+      std::fill(this->ptr_ + this->size_, this->ptr_ + newSize, val);
     }
     this->size_ = newSize;
     if (shrink) shrink_to_fit();

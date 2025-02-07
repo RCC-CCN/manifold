@@ -209,12 +209,6 @@ include(${PROJECT_SOURCE_DIR}/cmake/manifoldDeps.cmake)
 include(${PROJECT_SOURCE_DIR}/cmake/configHelper.cmake)
 
 add_subdirectory(src)
-add_subdirectory(bindings)
-if(MANIFOLD_TEST)
-  add_subdirectory(samples)
-  add_subdirectory(test)
-  add_subdirectory(extras)
-endif()
 
 include(${PROJECT_SOURCE_DIR}/cmake/info.cmake)
 
