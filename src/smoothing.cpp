@@ -340,29 +340,27 @@ std::vector<Smoothness> Manifold::Impl::UpdateSharpenedEdges(
 Vec<bool> Manifold::Impl::FlatFaces() const {
   const int numTri = NumTri();
   Vec<bool> triIsFlatFace(numTri, false);
-  for_each_n(autoPolicy(numTri, 1e5), countAt(0), numTri,
-             [this, &triIsFlatFace](const int tri) {
-               const TriRef& ref = meshRelation_.triRef[tri];
-               int faceNeighbors = 0;
-               ivec3 faceTris = {-1, -1, -1};
-               for (const int j : {0, 1, 2}) {
-                 const int neighborTri =
-                     halfedge_[3 * tri + j].pairedHalfedge / 3;
-                 const TriRef& jRef = meshRelation_.triRef[neighborTri];
-                 if (jRef.SameFace(ref)) {
-                   ++faceNeighbors;
-                   faceTris[j] = neighborTri;
-                 }
-               }
-               if (faceNeighbors > 1) {
-                 triIsFlatFace[tri] = true;
-                 for (const int j : {0, 1, 2}) {
-                   if (faceTris[j] >= 0) {
-                     triIsFlatFace[faceTris[j]] = true;
-                   }
-                 }
-               }
-             });
+  for_each_n(countAt(0), numTri, [this, &triIsFlatFace](const int tri) {
+    const TriRef& ref = meshRelation_.triRef[tri];
+    int faceNeighbors = 0;
+    ivec3 faceTris = {-1, -1, -1};
+    for (const int j : {0, 1, 2}) {
+      const int neighborTri = halfedge_[3 * tri + j].pairedHalfedge / 3;
+      const TriRef& jRef = meshRelation_.triRef[neighborTri];
+      if (jRef.SameFace(ref)) {
+        ++faceNeighbors;
+        faceTris[j] = neighborTri;
+      }
+    }
+    if (faceNeighbors > 1) {
+      triIsFlatFace[tri] = true;
+      for (const int j : {0, 1, 2}) {
+        if (faceTris[j] >= 0) {
+          triIsFlatFace[faceTris[j]] = true;
+        }
+      }
+    }
+  });
   return triIsFlatFace;
 }
 
@@ -388,7 +386,7 @@ Vec<int> Manifold::Impl::VertFlatFace(const Vec<bool>& flatFaces) const {
 Vec<int> Manifold::Impl::VertHalfedge() const {
   Vec<int> vertHalfedge(NumVert());
   Vec<uint8_t> counters(NumVert(), 0);
-  for_each_n(autoPolicy(halfedge_.size(), 1e5), countAt(0), halfedge_.size(),
+  for_each_n(countAt(0), halfedge_.size(),
              [&vertHalfedge, &counters, this](const int idx) {
                auto old = std::atomic_exchange(
                    reinterpret_cast<std::atomic<uint8_t>*>(
@@ -474,7 +472,7 @@ void Manifold::Impl::SetNormals(int normalIdx, double minSharpAngle) {
   meshRelation_.numProp = numProp;
   if (meshRelation_.triProperties.size() == 0) {
     meshRelation_.triProperties.resize(numTri);
-    for_each_n(autoPolicy(numTri, 1e5), countAt(0), numTri, [this](int tri) {
+    for_each_n(countAt(0), numTri, [this](int tri) {
       for (const int j : {0, 1, 2})
         meshRelation_.triProperties[tri][j] = halfedge_[3 * tri + j].startVert;
     });
@@ -644,7 +642,7 @@ void Manifold::Impl::SetNormals(int normalIdx, double minSharpAngle) {
  */
 void Manifold::Impl::LinearizeFlatTangents() {
   const int n = halfedgeTangent_.size();
-  for_each_n(autoPolicy(n, 1e4), countAt(0), n, [this](const int halfedge) {
+  for_each_n(countAt(0), n, [this](const int halfedge) {
     vec4& tangent = halfedgeTangent_[halfedge];
     vec4& otherTangent = halfedgeTangent_[halfedge_[halfedge].pairedHalfedge];
 
@@ -678,8 +676,7 @@ void Manifold::Impl::LinearizeFlatTangents() {
 void Manifold::Impl::DistributeTangents(const Vec<bool>& fixedHalfedges) {
   const int numHalfedge = fixedHalfedges.size();
   for_each_n(
-      autoPolicy(numHalfedge, 1e4), countAt(0), numHalfedge,
-      [this, &fixedHalfedges](int halfedge) {
+      countAt(0), numHalfedge, [this, &fixedHalfedges](int halfedge) {
         if (!fixedHalfedges[halfedge]) return;
 
         if (IsMarkedInsideQuad(halfedge)) {
@@ -776,7 +773,7 @@ void Manifold::Impl::CreateTangents(int normalIdx) {
 
   Vec<int> vertHalfedge = VertHalfedge();
   for_each_n(
-      autoPolicy(numVert, 1e4), vertHalfedge.begin(), numVert,
+      vertHalfedge.begin(), numVert,
       [this, &tangent, &fixedHalfedge, normalIdx](int e) {
         struct FlatNormal {
           bool isFlatFace;
@@ -868,7 +865,7 @@ void Manifold::Impl::CreateTangents(std::vector<Smoothness> sharpenedEdges) {
     }
   }
 
-  for_each_n(autoPolicy(numHalfedge, 1e4), countAt(0), numHalfedge,
+  for_each_n(countAt(0), numHalfedge,
              [&tangent, &vertNormal, this](const int edgeIdx) {
                tangent[edgeIdx] =
                    IsInsideQuad(edgeIdx)
@@ -918,7 +915,7 @@ void Manifold::Impl::CreateTangents(std::vector<Smoothness> sharpenedEdges) {
 
   const int numVert = NumVert();
   for_each_n(
-      autoPolicy(numVert, 1e4), countAt(0), numVert,
+      countAt(0), numVert,
       [this, &vertTangents, &fixedHalfedge, &vertHalfedge,
        &triIsFlatFace](int v) {
         auto it = vertTangents.find(v);
@@ -990,8 +987,7 @@ void Manifold::Impl::Refine(std::function<int(vec3, vec4, vec4)> edgeDivisions,
   if (vertBary.size() == 0) return;
 
   if (old.halfedgeTangent_.size() == old.halfedge_.size()) {
-    for_each_n(autoPolicy(NumTri(), 1e4), countAt(0), NumVert(),
-               InterpTri({vertPos_, vertBary, &old}));
+    for_each_n(countAt(0), NumVert(), InterpTri({vertPos_, vertBary, &old}));
   }
 
   halfedgeTangent_.clear();

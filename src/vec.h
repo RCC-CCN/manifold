@@ -112,7 +112,7 @@ class Vec : public VecView<T> {
       this->ptr_ = reinterpret_cast<T *>(malloc(this->size_ * sizeof(T)));
 
       TracyAllocS(this->ptr_, this->size_ * sizeof(T), 3);
-      manifold::std::copy(other.begin(), other.end(), this->ptr_);
+      std::copy(other.begin(), other.end(), this->ptr_);
     }
     return *this;
   }
@@ -164,9 +164,8 @@ class Vec : public VecView<T> {
 
       TracyAllocS(newBuffer, n * sizeof(T), 3);
       if (this->size_ > 0)
-        manifold::std::copy(
-            seq ? ExecutionPolicy::Seq : autoPolicy(this->size_), this->ptr_,
-            this->ptr_ + this->size_, newBuffer);
+        std::copy(seq ? ExecutionPolicy::Seq : autoPolicy(this->size_),
+                  this->ptr_, this->ptr_ + this->size_, newBuffer);
       if (this->ptr_ != nullptr) {
         TracyFreeS(this->ptr_, 3);
         free(this->ptr_);
@@ -207,7 +206,7 @@ class Vec : public VecView<T> {
       newBuffer = reinterpret_cast<T *>(malloc(this->size_ * sizeof(T)));
 
       TracyAllocS(newBuffer, this->size_ * sizeof(T), 3);
-      manifold::std::copy(this->ptr_, this->ptr_ + this->size_, newBuffer);
+      std::copy(this->ptr_, this->ptr_ + this->size_, newBuffer);
     }
     if (this->ptr_ != nullptr) {
       TracyFreeS(this->ptr_, 3);

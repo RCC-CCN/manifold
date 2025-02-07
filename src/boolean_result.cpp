@@ -805,14 +805,12 @@ Manifold::Impl Boolean3::Result(OpType op) const {
 
   // Level 6
 
-  if (ManifoldParams().intermediateChecks)
     
 
   outR.Face2Tri(faceEdge, halfedgeRef);
   halfedgeRef.clear();
   faceEdge.clear();
 
-  if (ManifoldParams().intermediateChecks)
     
 
   CreateProperties(outR, inP_, inQ_);
@@ -822,7 +820,7 @@ Manifold::Impl Boolean3::Result(OpType op) const {
   outR.SimplifyTopology();
   outR.RemoveUnreferencedVerts();
 
-  if (ManifoldParams().intermediateChecks) outR.Finish();
+   outR.Finish();
   outR.IncrementMeshIDs();
 
   return outR;

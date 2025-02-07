@@ -284,12 +284,11 @@ void Manifold::Impl::CalculateCurvature(int gaussianIdx, int meanIdx) {
   Vec<double> vertGaussianCurvature(NumVert(), kTwoPi);
   Vec<double> vertArea(NumVert(), 0);
   Vec<double> degree(NumVert(), 0);
-  auto policy = autoPolicy(NumTri(), 1e4);
   std::for_each(
-      policy, countAt(0_uz), countAt(NumTri()),
+      countAt(0_uz), countAt(NumTri()),
       CurvatureAngles({vertMeanCurvature, vertGaussianCurvature, vertArea,
                        degree, halfedge_, vertPos_, faceNormal_}));
-  for_each_n(policy, countAt(0), NumVert(),
+  for_each_n(countAt(0), NumVert(),
              [&vertMeanCurvature, &vertGaussianCurvature, &vertArea,
               &degree](const int vert) {
                const double factor = degree[vert] / (6 * vertArea[vert]);
@@ -308,7 +307,7 @@ void Manifold::Impl::CalculateCurvature(int gaussianIdx, int meanIdx) {
 
   const Vec<uint8_t> counters(NumPropVert(), 0);
   for_each_n(
-      policy, countAt(0_uz), NumTri(),
+      countAt(0_uz), NumTri(),
       UpdateProperties({meshRelation_.triProperties, meshRelation_.properties,
                         counters, oldProperties, halfedge_, vertMeanCurvature,
                         vertGaussianCurvature, oldNumProp, numProp, gaussianIdx,

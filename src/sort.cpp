@@ -150,11 +150,10 @@ bool MergeMeshGLP(MeshGLP<Precision, I>& mesh) {
                                          : kPrecision) *
                                         bBox.Scale());
 
-  auto policy = autoPolicy(numOpenVert, 1e5);
   Vec<Box> vertBox(numOpenVert);
   Vec<uint32_t> vertMorton(numOpenVert);
 
-  for_each_n(policy, countAt(0), numOpenVert,
+  for_each_n(countAt(0), numOpenVert,
              [&vertMorton, &vertBox, &openVerts, &bBox, &mesh,
               tolerance](const int i) {
                int vert = openVerts[i];
@@ -244,8 +243,7 @@ void Manifold::Impl::SortVerts() {
   ZoneScoped;
   const auto numVert = NumVert();
   Vec<uint32_t> vertMorton(numVert);
-  auto policy = autoPolicy(numVert, 1e5);
-  for_each_n(policy, countAt(0), numVert, [this, &vertMorton](const int vert) {
+  for_each_n(countAt(0), numVert, [this, &vertMorton](const int vert) {
     vertMorton[vert] = MortonCode(vertPos_[vert], bBox_);
   });
 
@@ -286,8 +284,7 @@ void Manifold::Impl::ReindexVerts(const Vec<int>& vertNew2Old,
   Vec<int> vertOld2New(oldNumVert);
   scatter(countAt(0), countAt(static_cast<int>(NumVert())), vertNew2Old.begin(),
           vertOld2New.begin());
-  std::for_each(autoPolicy(oldNumVert, 1e5), halfedge_.begin(), halfedge_.end(),
-                Reindex({vertOld2New}));
+  std::for_each(halfedge_.begin(), halfedge_.end(), Reindex({vertOld2New}));
 }
 
 /**
@@ -299,9 +296,8 @@ void Manifold::Impl::CompactProps() {
 
   const auto numVerts = meshRelation_.properties.size() / meshRelation_.numProp;
   Vec<int> keep(numVerts, 0);
-  auto policy = autoPolicy(numVerts, 1e5);
 
-  std::for_each(policy, meshRelation_.triProperties.cbegin(),
+  std::for_each(meshRelation_.triProperties.cbegin(),
                 meshRelation_.triProperties.cend(), MarkProp({keep}));
   Vec<int> propOld2New(numVerts + 1, 0);
   std::inclusive_scan(keep.begin(), keep.end(), propOld2New.begin() + 1);
@@ -312,7 +308,7 @@ void Manifold::Impl::CompactProps() {
   auto& properties = meshRelation_.properties;
   properties.resize_nofill(numProp * numVertsNew);
   for_each_n(
-      policy, countAt(0), numVerts,
+      countAt(0), numVerts,
       [&properties, &oldProp, &propOld2New, &keep, &numProp](const int oldIdx) {
         if (keep[oldIdx] == 0) return;
         for (int p = 0; p < numProp; ++p) {
@@ -320,7 +316,7 @@ void Manifold::Impl::CompactProps() {
               oldProp[oldIdx * numProp + p];
         }
       });
-  for_each_n(policy, meshRelation_.triProperties.begin(), NumTri(),
+  for_each_n(meshRelation_.triProperties.begin(), NumTri(),
              ReindexProps({propOld2New}));
 }
 
@@ -335,7 +331,7 @@ void Manifold::Impl::GetFaceBoxMorton(Vec<Box>& faceBox,
   // faceBox should be initialized
   faceBox.resize(NumTri(), Box());
   faceMorton.resize_nofill(NumTri());
-  for_each_n(autoPolicy(NumTri(), 1e5), countAt(0), NumTri(),
+  for_each_n(countAt(0), NumTri(),
              [this, &faceBox, &faceMorton](const int face) {
                // Removed tris are marked by all halfedges having pairedHalfedge
                // = -1, and this will sort them to the end (the Morton code only
@@ -403,14 +399,13 @@ void Manifold::Impl::GatherFaces(const Vec<int>& faceNew2Old) {
   Vec<Halfedge> oldHalfedge(std::move(halfedge_));
   Vec<vec4> oldHalfedgeTangent(std::move(halfedgeTangent_));
   Vec<int> faceOld2New(oldHalfedge.size() / 3);
-  auto policy = autoPolicy(numTri, 1e5);
   scatter(countAt(0_uz), countAt(numTri), faceNew2Old.begin(),
           faceOld2New.begin());
 
   halfedge_.resize_nofill(3 * numTri);
   if (oldHalfedgeTangent.size() != 0)
     halfedgeTangent_.resize_nofill(3 * numTri);
-  for_each_n(policy, countAt(0), numTri,
+  for_each_n(countAt(0), numTri,
              ReindexFace({halfedge_, halfedgeTangent_, oldHalfedge,
                           oldHalfedgeTangent, faceNew2Old, faceOld2New}));
 }
@@ -449,7 +444,7 @@ void Manifold::Impl::GatherFaces(const Impl& old, const Vec<int>& faceNew2Old) {
   halfedge_.resize_nofill(3 * numTri);
   if (old.halfedgeTangent_.size() != 0)
     halfedgeTangent_.resize_nofill(3 * numTri);
-  for_each_n(autoPolicy(numTri, 1e5), countAt(0), numTri,
+  for_each_n(countAt(0), numTri,
              ReindexFace({halfedge_, halfedgeTangent_, old.halfedge_,
                           old.halfedgeTangent_, faceNew2Old, faceOld2New}));
 }

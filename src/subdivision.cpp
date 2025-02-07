@@ -118,7 +118,7 @@ class Partition {
 
     const int numTri = triVert.size();
     Vec<ivec3> newTriVert(numTri);
-    for_each_n(autoPolicy(numTri), countAt(0), numTri,
+    for_each_n(countAt(0), numTri,
                [&newTriVert, &outTri, &newVerts, this](const int tri) {
                  for (const int j : {0, 1, 2}) {
                    newTriVert[tri][outTri[j]] = newVerts[triVert[tri][j]];
@@ -479,21 +479,19 @@ Vec<Barycentric> Manifold::Impl::Subdivide(
   const int numEdge = edges.size();
   const int numTri = NumTri();
   Vec<int> half2Edge(2 * numEdge);
-  auto policy = autoPolicy(numEdge, 1e4);
-  for_each_n(policy, countAt(0), numEdge,
-             [&half2Edge, &edges, this](const int edge) {
-               const int idx = edges[edge].halfedgeIdx;
-               half2Edge[idx] = edge;
-               half2Edge[halfedge_[idx].pairedHalfedge] = edge;
-             });
+  for_each_n(countAt(0), numEdge, [&half2Edge, &edges, this](const int edge) {
+    const int idx = edges[edge].halfedgeIdx;
+    half2Edge[idx] = edge;
+    half2Edge[halfedge_[idx].pairedHalfedge] = edge;
+  });
 
   Vec<ivec4> faceHalfedges(numTri);
-  for_each_n(policy, countAt(0), numTri, [&faceHalfedges, this](const int tri) {
+  for_each_n(countAt(0), numTri, [&faceHalfedges, this](const int tri) {
     faceHalfedges[tri] = GetHalfedges(tri);
   });
 
   Vec<int> edgeAdded(numEdge);
-  for_each_n(policy, countAt(0), numEdge,
+  for_each_n(countAt(0), numEdge,
              [&edgeAdded, &edges, edgeDivisions, this](const int i) {
                const TmpEdge edge = edges[i];
                const int hIdx = edge.halfedgeIdx;
@@ -521,7 +519,7 @@ Vec<Barycentric> Manifold::Impl::Subdivide(
     // and creates more interior facets.
     Vec<int> tmp(numEdge);
     for_each_n(
-        policy, countAt(0), numEdge,
+        countAt(0), numEdge,
         [&tmp, &edgeAdded, &edges, &half2Edge, this](const int i) {
           tmp[i] = edgeAdded[i];
           const TmpEdge edge = edges[i];
@@ -561,7 +559,7 @@ Vec<Barycentric> Manifold::Impl::Subdivide(
   Vec<Barycentric> vertBary(edgeOffset.back() + edgeAdded.back());
   const int totalEdgeAdded = vertBary.size() - numVert;
   FillRetainedVerts(vertBary);
-  for_each_n(policy, countAt(0), numEdge,
+  for_each_n(countAt(0), numEdge,
              [&vertBary, &edges, &edgeAdded, &edgeOffset, this](const int i) {
                const int n = edgeAdded[i];
                const int offset = edgeOffset[i];
@@ -582,7 +580,7 @@ Vec<Barycentric> Manifold::Impl::Subdivide(
              });
 
   std::vector<Partition> subTris(numTri);
-  for_each_n(policy, countAt(0), numTri,
+  for_each_n(countAt(0), numTri,
              [this, &subTris, &half2Edge, &edgeAdded, &faceHalfedges](int tri) {
                const ivec4 halfedges = faceHalfedges[tri];
                ivec4 divisions(0);
@@ -599,23 +597,21 @@ Vec<Barycentric> Manifold::Impl::Subdivide(
       TransformIterator(subTris.begin(), [](const Partition& part) {
         return static_cast<int>(part.triVert.size());
       });
-  manifold::std::exclusive_scan(numSubTris, numSubTris + numTri,
-                                triOffset.begin(), 0);
+  std::exclusive_scan(numSubTris, numSubTris + numTri, triOffset.begin(), 0);
 
   Vec<int> interiorOffset(numTri);
   auto numInterior =
       TransformIterator(subTris.begin(), [](const Partition& part) {
         return static_cast<int>(part.NumInterior());
       });
-  manifold::std::exclusive_scan(numInterior, numInterior + numTri,
-                                interiorOffset.begin(),
-                                static_cast<int>(vertBary.size()));
+  std::exclusive_scan(numInterior, numInterior + numTri, interiorOffset.begin(),
+                      static_cast<int>(vertBary.size()));
 
   Vec<ivec3> triVerts(triOffset.back() + subTris.back().triVert.size());
   vertBary.resize(interiorOffset.back() + subTris.back().NumInterior());
   Vec<TriRef> triRef(triVerts.size());
   for_each_n(
-      policy, countAt(0), numTri,
+      countAt(0), numTri,
       [this, &triVerts, &triRef, &vertBary, &subTris, &edgeOffset, &half2Edge,
        &triOffset, &interiorOffset, &faceHalfedges](int tri) {
         const ivec4 halfedges = faceHalfedges[tri];
@@ -662,7 +658,7 @@ Vec<Barycentric> Manifold::Impl::Subdivide(
   meshRelation_.triRef = triRef;
 
   Vec<vec3> newVertPos(vertBary.size());
-  for_each_n(policy, countAt(0), vertBary.size(),
+  for_each_n(countAt(0), vertBary.size(),
              [&newVertPos, &vertBary, &faceHalfedges, this](const int vert) {
                const Barycentric bary = vertBary[vert];
                const ivec4 halfedges = faceHalfedges[bary.tri];
@@ -697,7 +693,7 @@ Vec<Barycentric> Manifold::Impl::Subdivide(
 
     // copy interior prop verts and forward edge prop verts
     for_each_n(
-        policy, countAt(0), addedVerts,
+        countAt(0), addedVerts,
         [&prop, &vertBary, &faceHalfedges, numVert, numPropVert,
          this](const int i) {
           const int vert = numPropVert + i;
@@ -728,7 +724,7 @@ Vec<Barycentric> Manifold::Impl::Subdivide(
         });
 
     // copy backward edge prop verts
-    for_each_n(policy, countAt(0), numEdge,
+    for_each_n(countAt(0), numEdge,
                [this, &prop, &edges, &edgeAdded, &edgeOffset, propOffset,
                 addedVerts](const int i) {
                  const int n = edgeAdded[i];
@@ -753,7 +749,7 @@ Vec<Barycentric> Manifold::Impl::Subdivide(
                });
 
     Vec<ivec3> triProp(triVerts.size());
-    for_each_n(policy, countAt(0), numTri,
+    for_each_n(countAt(0), numTri,
                [this, &triProp, &subTris, &edgeOffset, &half2Edge, &triOffset,
                 &interiorOffset, &faceHalfedges, propOffset,
                 addedVerts](const int tri) {
