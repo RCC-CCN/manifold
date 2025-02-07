@@ -260,7 +260,7 @@ class Collider {
     nodeParent_.resize(num_nodes, -1);
     internalChildren_.resize(leafBB.size() - 1, std::make_pair(-1, -1));
     // organize tree
-    for_each_n(autoPolicy(NumInternal(), 1e4), countAt(0), NumInternal(),
+    for_each_n(countAt(0), NumInternal(),
                collider_internal::CreateRadixTree(
                    {nodeParent_, internalChildren_, leafMorton}));
     UpdateBoxes(leafBB);
@@ -277,9 +277,8 @@ class Collider {
       if (count != 2) axisAligned = false;
     }
     if (axisAligned) {
-      for_each(autoPolicy(nodeBBox_.size(), 1e5), nodeBBox_.begin(),
-               nodeBBox_.end(),
-               [transform](Box& box) { box = box.Transform(transform); });
+      std::for_each(nodeBBox_.begin(), nodeBBox_.end(),
+                    [transform](Box& box) { box = box.Transform(transform); });
     }
     return axisAligned;
   }
@@ -289,11 +288,11 @@ class Collider {
 
     // copy in leaf node Boxes
     auto leaves = StridedRange(nodeBBox_.begin(), nodeBBox_.end(), 2);
-    copy(leafBB.cbegin(), leafBB.cend(), leaves.begin());
+    std::copy(leafBB.cbegin(), leafBB.cend(), leaves.begin());
     // create global counters
     Vec<int> counter(NumInternal(), 0);
     // kernel over leaves to save internal Boxes
-    for_each_n(autoPolicy(NumInternal(), 1e3), countAt(0), NumLeaves(),
+    for_each_n(countAt(0), NumLeaves(),
                collider_internal::BuildInternalBoxes(
                    {nodeBBox_, counter, nodeParent_, internalChildren_}));
   }
@@ -305,7 +304,7 @@ class Collider {
     ZoneScoped;
     using collider_internal::FindCollision;
 
-    for_each_n(ExecutionPolicy::Seq, countAt(0), queriesIn.size(),
+    for_each_n(countAt(0), queriesIn.size(),
                FindCollision<T, selfCollision,
                              collider_internal::SeqCollisionRecorder<inverted>>{
                    queriesIn, nodeBBox_, internalChildren_, {queryTri}});

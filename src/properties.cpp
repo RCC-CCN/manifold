@@ -285,9 +285,10 @@ void Manifold::Impl::CalculateCurvature(int gaussianIdx, int meanIdx) {
   Vec<double> vertArea(NumVert(), 0);
   Vec<double> degree(NumVert(), 0);
   auto policy = autoPolicy(NumTri(), 1e4);
-  for_each(policy, countAt(0_uz), countAt(NumTri()),
-           CurvatureAngles({vertMeanCurvature, vertGaussianCurvature, vertArea,
-                            degree, halfedge_, vertPos_, faceNormal_}));
+  std::for_each(
+      policy, countAt(0_uz), countAt(NumTri()),
+      CurvatureAngles({vertMeanCurvature, vertGaussianCurvature, vertArea,
+                       degree, halfedge_, vertPos_, faceNormal_}));
   for_each_n(policy, countAt(0), NumVert(),
              [&vertMeanCurvature, &vertGaussianCurvature, &vertArea,
               &degree](const int vert) {

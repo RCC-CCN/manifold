@@ -286,8 +286,8 @@ void Manifold::Impl::ReindexVerts(const Vec<int>& vertNew2Old,
   Vec<int> vertOld2New(oldNumVert);
   scatter(countAt(0), countAt(static_cast<int>(NumVert())), vertNew2Old.begin(),
           vertOld2New.begin());
-  for_each(autoPolicy(oldNumVert, 1e5), halfedge_.begin(), halfedge_.end(),
-           Reindex({vertOld2New}));
+  std::for_each(autoPolicy(oldNumVert, 1e5), halfedge_.begin(), halfedge_.end(),
+                Reindex({vertOld2New}));
 }
 
 /**
@@ -301,8 +301,8 @@ void Manifold::Impl::CompactProps() {
   Vec<int> keep(numVerts, 0);
   auto policy = autoPolicy(numVerts, 1e5);
 
-  for_each(policy, meshRelation_.triProperties.cbegin(),
-           meshRelation_.triProperties.cend(), MarkProp({keep}));
+  std::for_each(policy, meshRelation_.triProperties.cbegin(),
+                meshRelation_.triProperties.cend(), MarkProp({keep}));
   Vec<int> propOld2New(numVerts + 1, 0);
   std::inclusive_scan(keep.begin(), keep.end(), propOld2New.begin() + 1);
 

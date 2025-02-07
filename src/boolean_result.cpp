@@ -117,33 +117,17 @@ std::tuple<Vec<int>, Vec<int>> SizeOutput(
   auto sidesPerFaceP = sidesPerFacePQ.view(0, inP.NumTri());
   auto sidesPerFaceQ = sidesPerFacePQ.view(inP.NumTri(), inQ.NumTri());
 
-  if (inP.halfedge_.size() >= 1e5) {
-    for_each(ExecutionPolicy::Par, countAt(0_uz), countAt(inP.halfedge_.size()),
-             CountVerts<true>({inP.halfedge_, sidesPerFaceP, i03}));
-    for_each(ExecutionPolicy::Par, countAt(0_uz), countAt(inQ.halfedge_.size()),
-             CountVerts<true>({inQ.halfedge_, sidesPerFaceQ, i30}));
-  } else {
-    for_each(ExecutionPolicy::Seq, countAt(0_uz), countAt(inP.halfedge_.size()),
-             CountVerts<false>({inP.halfedge_, sidesPerFaceP, i03}));
-    for_each(ExecutionPolicy::Seq, countAt(0_uz), countAt(inQ.halfedge_.size()),
-             CountVerts<false>({inQ.halfedge_, sidesPerFaceQ, i30}));
-  }
+  std::for_each(countAt(0_uz), countAt(inP.halfedge_.size()),
+                CountVerts<false>({inP.halfedge_, sidesPerFaceP, i03}));
+  std::for_each(countAt(0_uz), countAt(inQ.halfedge_.size()),
+                CountVerts<false>({inQ.halfedge_, sidesPerFaceQ, i30}));
 
-  if (i12.size() >= 1e5) {
-    for_each_n(ExecutionPolicy::Par, countAt(0), i12.size(),
-               CountNewVerts<false, true>(
-                   {sidesPerFaceP, sidesPerFaceQ, i12, p1q2, inP.halfedge_}));
-    for_each_n(ExecutionPolicy::Par, countAt(0), i21.size(),
-               CountNewVerts<true, true>(
-                   {sidesPerFaceQ, sidesPerFaceP, i21, p2q1, inQ.halfedge_}));
-  } else {
-    for_each_n(ExecutionPolicy::Seq, countAt(0), i12.size(),
-               CountNewVerts<false, false>(
-                   {sidesPerFaceP, sidesPerFaceQ, i12, p1q2, inP.halfedge_}));
-    for_each_n(ExecutionPolicy::Seq, countAt(0), i21.size(),
-               CountNewVerts<true, false>(
-                   {sidesPerFaceQ, sidesPerFaceP, i21, p2q1, inQ.halfedge_}));
-  }
+  for_each_n(countAt(0), i12.size(),
+             CountNewVerts<false, false>(
+                 {sidesPerFaceP, sidesPerFaceQ, i12, p1q2, inP.halfedge_}));
+  for_each_n(countAt(0), i21.size(),
+             CountNewVerts<true, false>(
+                 {sidesPerFaceQ, sidesPerFaceP, i21, p2q1, inQ.halfedge_}));
 
   Vec<int> facePQ2R(inP.NumTri() + inQ.NumTri() + 1, 0);
   auto keepFace = TransformIterator(sidesPerFacePQ.begin(),
@@ -484,7 +468,7 @@ void AppendWholeEdges(Manifold::Impl &outR, Vec<int> &facePtrR,
                       bool forward) {
   ZoneScoped;
   for_each_n(
-      autoPolicy(inP.halfedge_.size()), countAt(0), inP.halfedge_.size(),
+      countAt(0), inP.halfedge_.size(),
       DuplicateHalfedges({outR.halfedge_, halfedgeRef, facePtrR, wholeHalfedgeP,
                           inP.halfedge_, i03, vP2R, faceP2R, forward}));
 }
@@ -506,8 +490,7 @@ void UpdateReference(Manifold::Impl &outR, const Manifold::Impl &inP,
                      const Manifold::Impl &inQ, bool invertQ) {
   const int offsetQ = Manifold::Impl::meshIDCounter_;
   for_each_n(
-      autoPolicy(outR.NumTri(), 1e5), outR.meshRelation_.triRef.begin(),
-      outR.NumTri(),
+      outR.meshRelation_.triRef.begin(), outR.NumTri(),
       MapTriRef({inP.meshRelation_.triRef, inQ.meshRelation_.triRef, offsetQ}));
 
   for (const auto &pair : inP.meshRelation_.meshIDtransform) {
@@ -564,7 +547,7 @@ void CreateProperties(Manifold::Impl &outR, const Manifold::Impl &inP,
   outR.meshRelation_.triProperties.resize_nofill(numTri);
 
   Vec<vec3> bary(outR.halfedge_.size());
-  for_each_n(autoPolicy(numTri, 1e4), countAt(0), numTri,
+  for_each_n(countAt(0), numTri,
              Barycentric({bary, outR.meshRelation_.triRef, inP.vertPos_,
                           inQ.vertPos_, outR.vertPos_, inP.halfedge_,
                           inQ.halfedge_, outR.halfedge_, outR.epsilon_}));
@@ -742,14 +725,14 @@ Manifold::Impl Boolean3::Result(OpType op) const {
   outR.vertPos_.resize_nofill(numVertR);
   // Add vertices, duplicating for inclusion numbers not in [-1, 1].
   // Retained vertices from P and Q:
-  for_each_n(autoPolicy(inP_.NumVert(), 1e4), countAt(0), inP_.NumVert(),
+  for_each_n(countAt(0), inP_.NumVert(),
              DuplicateVerts({outR.vertPos_, i03, vP2R, inP_.vertPos_}));
-  for_each_n(autoPolicy(inQ_.NumVert(), 1e4), countAt(0), inQ_.NumVert(),
+  for_each_n(countAt(0), inQ_.NumVert(),
              DuplicateVerts({outR.vertPos_, i30, vQ2R, inQ_.vertPos_}));
   // New vertices created from intersections:
-  for_each_n(autoPolicy(i12.size(), 1e4), countAt(0), i12.size(),
+  for_each_n(countAt(0), i12.size(),
              DuplicateVerts({outR.vertPos_, i12, v12R, v12_}));
-  for_each_n(autoPolicy(i21.size(), 1e4), countAt(0), i21.size(),
+  for_each_n(countAt(0), i21.size(),
              DuplicateVerts({outR.vertPos_, i21, v21R, v21_}));
 
   PRINT(nPv << " verts from inP");

@@ -171,22 +171,15 @@ std::shared_ptr<CsgLeafNode> CsgLeafNode::Compose(
     combined.meshRelation_.properties.resize(numPropOut * numPropVert, 0);
     combined.meshRelation_.triProperties.resize_nofill(numTri);
   }
-  auto policy = autoPolicy(numTri);
-
-  // if we are already parallelizing for each node, do not perform multithreaded
-  // copying as it will slightly hurt performance
-  if (nodes.size() > 1 && policy == ExecutionPolicy::Par)
-    policy = ExecutionPolicy::Seq;
 
   for_each_n(
-      nodes.size() > 1 ? ExecutionPolicy::Par : ExecutionPolicy::Seq,
       countAt(0), nodes.size(),
       [&nodes, &vertIndices, &edgeIndices, &triIndices, &propVertIndices,
-       numPropOut, &combined, policy](int i) {
+       numPropOut, &combined](int i) {
         auto &node = nodes[i];
-        copy(node->pImpl_->halfedgeTangent_.begin(),
-             node->pImpl_->halfedgeTangent_.end(),
-             combined.halfedgeTangent_.begin() + edgeIndices[i]);
+        std::copy(node->pImpl_->halfedgeTangent_.begin(),
+                  node->pImpl_->halfedgeTangent_.end(),
+                  combined.halfedgeTangent_.begin() + edgeIndices[i]);
         const int nextVert = vertIndices[i];
         const int nextEdge = edgeIndices[i];
         const int nextFace = triIndices[i];
@@ -221,7 +214,7 @@ std::shared_ptr<CsgLeafNode> CsgLeafNode::Compose(
               auto newRange = StridedRange(
                   newProp.begin() + numPropOut * propVertIndices[i] + p,
                   newProp.end(), numPropOut);
-              copy(oldRange.begin(), oldRange.end(), newRange.begin());
+              std::copy(oldRange.begin(), oldRange.end(), newRange.begin());
             }
           } else {
             // point all triangles at single new property of zeros.
@@ -231,11 +224,12 @@ std::shared_ptr<CsgLeafNode> CsgLeafNode::Compose(
         }
 
         if (node->transform_ == mat3x4(la::identity)) {
-          copy(node->pImpl_->vertPos_.begin(), node->pImpl_->vertPos_.end(),
-               combined.vertPos_.begin() + vertIndices[i]);
-          copy(node->pImpl_->faceNormal_.begin(),
-               node->pImpl_->faceNormal_.end(),
-               combined.faceNormal_.begin() + triIndices[i]);
+          std::copy(node->pImpl_->vertPos_.begin(),
+                    node->pImpl_->vertPos_.end(),
+                    combined.vertPos_.begin() + vertIndices[i]);
+          std::copy(node->pImpl_->faceNormal_.begin(),
+                    node->pImpl_->faceNormal_.end(),
+                    combined.faceNormal_.begin() + triIndices[i]);
         } else {
           // no need to apply the transform to the node, just copy the vertices
           // and face normals and apply transform on the fly
@@ -255,13 +249,13 @@ std::shared_ptr<CsgLeafNode> CsgLeafNode::Compose(
                  combined.faceNormal_.begin() + triIndices[i]);
 
           const bool invert = la::determinant(mat3(node->transform_)) < 0;
-          for_each_n(policy, countAt(0), node->pImpl_->halfedgeTangent_.size(),
+          for_each_n(countAt(0), node->pImpl_->halfedgeTangent_.size(),
                      TransformTangents{combined.halfedgeTangent_,
                                        edgeIndices[i], mat3(node->transform_),
                                        invert, node->pImpl_->halfedgeTangent_,
                                        node->pImpl_->halfedge_});
           if (invert)
-            for_each_n(policy, countAt(triIndices[i]), node->pImpl_->NumTri(),
+            for_each_n(countAt(triIndices[i]), node->pImpl_->NumTri(),
                        FlipTris({combined.halfedge_}));
         }
         // Since the nodes may be copies containing the same meshIDs, it is

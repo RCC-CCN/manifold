@@ -69,7 +69,7 @@ class SparseIndices {
       total_size += ind.data_.size();
     }
     data_ = Vec<char>(total_size);
-    for_each_n(ExecutionPolicy::Par, countAt(0), indices.size(), [&](size_t i) {
+    for_each_n(countAt(0), indices.size(), [&](size_t i) {
       std::copy(indices[i].data_.begin(), indices[i].data_.end(),
                 data_.begin() + sizes[i]);
     });
@@ -82,8 +82,8 @@ class SparseIndices {
     size_t offset = pOffset;
     if (use_q) offset = 1 - offset;
     const int* p = ptr();
-    for_each(autoPolicy(out.size()), countAt(0_uz), countAt(out.size()),
-             [&](size_t i) { out[i] = p[i * 2 + offset]; });
+    std::for_each(countAt(0_uz), countAt(out.size()),
+                  [&](size_t i) { out[i] = p[i * 2 + offset]; });
     return out;
   }
 

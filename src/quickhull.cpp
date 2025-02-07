@@ -257,7 +257,7 @@ std::pair<Vec<Halfedge>, Vec<vec3>> QuickHull::buildMesh(double epsilon) {
   // Some faces are disabled and should not go into the halfedge vector, we can
   // update the face indices of the halfedges at the end using index/3
   int j = 0;
-  for_each(
+  std::for_each(
       autoPolicy(mesh.halfedges.size()), countAt(0_uz),
       countAt(mesh.halfedges.size()), [&](size_t i) {
         if (mesh.halfedges[i].pairedHalfedge < 0) return;
@@ -284,35 +284,35 @@ std::pair<Vec<Halfedge>, Vec<vec3>> QuickHull::buildMesh(double epsilon) {
   halfedges.resize(j);
   halfedgeToFace.resize(j);
   // fix pairedHalfedge id
-  for_each(
+  std::for_each(
       autoPolicy(halfedges.size()), halfedges.begin(), halfedges.end(),
       [&](Halfedge& he) { he.pairedHalfedge = mapping[he.pairedHalfedge]; });
   counts.resize_nofill(originalVertexData.size() + 1);
   std::fill(counts.begin(), counts.end(), 0);
 
   // remove unused vertices
-  for_each(autoPolicy(halfedges.size() / 3), countAt(0_uz),
-           countAt(halfedges.size() / 3), [&](size_t i) {
-             AtomicAdd(counts[halfedges[3 * i].startVert], 1);
-             AtomicAdd(counts[halfedges[3 * i + 1].startVert], 1);
-             AtomicAdd(counts[halfedges[3 * i + 2].startVert], 1);
-           });
+  std::for_each(autoPolicy(halfedges.size() / 3), countAt(0_uz),
+                countAt(halfedges.size() / 3), [&](size_t i) {
+                  AtomicAdd(counts[halfedges[3 * i].startVert], 1);
+                  AtomicAdd(counts[halfedges[3 * i + 1].startVert], 1);
+                  AtomicAdd(counts[halfedges[3 * i + 2].startVert], 1);
+                });
   auto saturate = [](int c) { return c > 0 ? 1 : 0; };
   std::exclusive_scan(TransformIterator(counts.begin(), saturate),
                       TransformIterator(counts.end(), saturate), counts.begin(),
                       0);
   Vec<vec3> vertices(counts.back());
-  for_each(autoPolicy(originalVertexData.size()), countAt(0_uz),
-           countAt(originalVertexData.size()), [&](size_t i) {
-             if (counts[i + 1] - counts[i] > 0) {
-               vertices[counts[i]] = originalVertexData[i];
-             }
-           });
-  for_each(autoPolicy(halfedges.size()), halfedges.begin(), halfedges.end(),
-           [&](Halfedge& he) {
-             he.startVert = counts[he.startVert];
-             he.endVert = counts[he.endVert];
-           });
+  std::for_each(autoPolicy(originalVertexData.size()), countAt(0_uz),
+                countAt(originalVertexData.size()), [&](size_t i) {
+                  if (counts[i + 1] - counts[i] > 0) {
+                    vertices[counts[i]] = originalVertexData[i];
+                  }
+                });
+  std::for_each(autoPolicy(halfedges.size()), halfedges.begin(),
+                halfedges.end(), [&](Halfedge& he) {
+                  he.startVert = counts[he.startVert];
+                  he.endVert = counts[he.endVert];
+                });
   return {std::move(halfedges), std::move(vertices)};
 }
 

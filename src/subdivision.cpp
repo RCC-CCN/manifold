@@ -636,7 +636,8 @@ Vec<Barycentric> Manifold::Impl::Subdivide(
 
         Vec<ivec3> newTris = subTris[tri].Reindex(tri3, edgeOffsets, edgeFwd,
                                                   interiorOffset[tri]);
-        copy(newTris.begin(), newTris.end(), triVerts.begin() + triOffset[tri]);
+        std::copy(newTris.begin(), newTris.end(),
+                  triVerts.begin() + triOffset[tri]);
         auto start = triRef.begin() + triOffset[tri];
         std::fill(start, start + newTris.size(), meshRelation_.triRef[tri]);
 
@@ -691,8 +692,8 @@ Vec<Barycentric> Manifold::Impl::Subdivide(
                      (numPropVert + addedVerts + totalEdgeAdded));
 
     // copy retained prop verts
-    copy(meshRelation_.properties.begin(), meshRelation_.properties.end(),
-         prop.begin());
+    std::copy(meshRelation_.properties.begin(), meshRelation_.properties.end(),
+              prop.begin());
 
     // copy interior prop verts and forward edge prop verts
     for_each_n(
@@ -790,8 +791,8 @@ Vec<Barycentric> Manifold::Impl::Subdivide(
                  Vec<ivec3> newTris = subTris[tri].Reindex(
                      tri3, edgeOffsets + propOffset, edgeFwd,
                      interiorOffset[tri] + propOffset);
-                 copy(newTris.begin(), newTris.end(),
-                      triProp.begin() + triOffset[tri]);
+                 std::copy(newTris.begin(), newTris.end(),
+                           triProp.begin() + triOffset[tri]);
                });
 
     meshRelation_.properties = prop;

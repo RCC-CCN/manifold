@@ -473,12 +473,11 @@ Manifold Manifold::LevelSet(std::function<double(vec3)> sdf, Box bounds,
   // that expect to not be called back by unregistered threads. This allows
   // bindings use LevelSet despite being compiled with MANIFOLD_PAR
   // active.
-  const auto pol = canParallel ? autoPolicy(maxIndex) : ExecutionPolicy::Seq;
 
   const vec3 origin = bounds.min;
   Vec<double> voxels(maxIndex);
   for_each_n(
-      pol, countAt(0_uz), maxIndex,
+      countAt(0_uz), maxIndex,
       [&voxels, sdf, level, origin, spacing, gridSize, gridPow](Uint64 idx) {
         voxels[idx] = BoundedSDF(DecodeIndex(idx, gridPow) - kVoxelOffset,
                                  origin, spacing, gridSize, level, sdf);
@@ -491,7 +490,7 @@ Manifold Manifold::LevelSet(std::function<double(vec3)> sdf, Box bounds,
 
   while (1) {
     Vec<int> index(1, 0);
-    for_each_n(pol, countAt(0_uz), EncodeIndex(ivec4(gridSize, 1), gridPow),
+    for_each_n(countAt(0_uz), EncodeIndex(ivec4(gridSize, 1), gridPow),
                NearSurface({vertPos, index, gridVerts.D(), voxels, sdf, origin,
                             gridSize, gridPow, spacing, level, tolerance}));
 
@@ -509,7 +508,7 @@ Manifold Manifold::LevelSet(std::function<double(vec3)> sdf, Box bounds,
       vertPos = Vec<vec3>(gridVerts.Size() * 7);
     } else {  // Success
       for_each_n(
-          pol, countAt(0), gridVerts.Size(),
+          countAt(0), gridVerts.Size(),
           ComputeVerts({vertPos, index, gridVerts.D(), voxels, sdf, origin,
                         gridSize, gridPow, spacing, level, tolerance}));
       vertPos.resize(index[0]);
@@ -520,7 +519,7 @@ Manifold Manifold::LevelSet(std::function<double(vec3)> sdf, Box bounds,
   Vec<ivec3> triVerts(gridVerts.Entries() * 12);  // worst case
 
   Vec<int> index(1, 0);
-  for_each_n(pol, countAt(0), gridVerts.Size(),
+  for_each_n(countAt(0), gridVerts.Size(),
              BuildTris({triVerts, index, gridVerts.D(), gridPow}));
   triVerts.resize(index[0]);
 
