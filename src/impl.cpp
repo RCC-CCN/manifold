@@ -587,7 +587,7 @@ void Manifold::Impl::CalculateNormals() {
   ZoneScoped;
   vertNormal_.resize(NumVert());
   auto policy = autoPolicy(NumTri(), 1e4);
-  fill(vertNormal_.begin(), vertNormal_.end(), vec3(0.0));
+  std::fill(vertNormal_.begin(), vertNormal_.end(), vec3(0.0));
   bool calculateTriNormal = false;
   if (faceNormal_.size() != NumTri()) {
     faceNormal_.resize(NumTri());

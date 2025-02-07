@@ -638,7 +638,7 @@ Vec<Barycentric> Manifold::Impl::Subdivide(
                                                   interiorOffset[tri]);
         copy(newTris.begin(), newTris.end(), triVerts.begin() + triOffset[tri]);
         auto start = triRef.begin() + triOffset[tri];
-        fill(start, start + newTris.size(), meshRelation_.triRef[tri]);
+        std::fill(start, start + newTris.size(), meshRelation_.triRef[tri]);
 
         const ivec4 idx = subTris[tri].idx;
         const ivec4 vIdx = halfedges[3] >= 0 || idx[1] == Next3(idx[0])

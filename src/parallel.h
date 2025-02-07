@@ -317,24 +317,6 @@ void copy_n(InputIter first, size_t n, OutputIter d_first) {
   copy(autoPolicy(n, 1e6), first, first + n, d_first);
 }
 
-// Fill the range `[first, last)` with `value`.
-template <typename OutputIter, typename T>
-void fill(ExecutionPolicy policy, OutputIter first, OutputIter last, T value) {
-  static_assert(
-      std::is_convertible_v<
-          typename std::iterator_traits<OutputIter>::iterator_category,
-          std::random_access_iterator_tag>,
-      "You can only parallelize RandomAccessIterator.");
-
-  std::fill(first, last, value);
-}
-
-// Fill the range `[first, last)` with `value`.
-template <typename OutputIter, typename T>
-void fill(OutputIter first, OutputIter last, T value) {
-  fill(autoPolicy(first, last, 5e5), first, last, value);
-}
-
 // Count the number of elements in the input range `[first, last)` satisfying
 // predicate `pred`, i.e. `pred(x) == true`.
 template <typename InputIter, typename P>

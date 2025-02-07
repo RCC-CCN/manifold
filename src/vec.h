@@ -179,8 +179,8 @@ class Vec : public VecView<T> {
     bool shrink = this->size_ > 2 * newSize;
     reserve(newSize);
     if (this->size_ < newSize) {
-      fill(autoPolicy(newSize - this->size_), this->ptr_ + this->size_,
-           this->ptr_ + newSize, val);
+      std::fill(autoPolicy(newSize - this->size_), this->ptr_ + this->size_,
+                this->ptr_ + newSize, val);
     }
     this->size_ = newSize;
     if (shrink) shrink_to_fit();

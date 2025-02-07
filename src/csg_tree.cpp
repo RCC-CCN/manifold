@@ -225,8 +225,8 @@ std::shared_ptr<CsgLeafNode> CsgLeafNode::Compose(
             }
           } else {
             // point all triangles at single new property of zeros.
-            fill(start, start + node->pImpl_->NumTri(),
-                 ivec3(propVertIndices[i]));
+            std::fill(start, start + node->pImpl_->NumTri(),
+                      ivec3(propVertIndices[i]));
           }
         }
 
