@@ -319,20 +319,20 @@ void Manifold::Impl::CalculateCurvature(int gaussianIdx, int meanIdx) {
  * internally to short-cut Boolean operations. Ignores NaNs.
  */
 void Manifold::Impl::CalculateBBox() {
-  bBox_.min =
-      reduce(vertPos_.begin(), vertPos_.end(),
-             vec3(std::numeric_limits<double>::infinity()), [](auto a, auto b) {
-               if (std::isnan(a.x)) return b;
-               if (std::isnan(b.x)) return a;
-               return la::min(a, b);
-             });
-  bBox_.max = reduce(vertPos_.begin(), vertPos_.end(),
-                     vec3(-std::numeric_limits<double>::infinity()),
-                     [](auto a, auto b) {
-                       if (std::isnan(a.x)) return b;
-                       if (std::isnan(b.x)) return a;
-                       return la::max(a, b);
-                     });
+  bBox_.min = std::reduce(vertPos_.begin(), vertPos_.end(),
+                          vec3(std::numeric_limits<double>::infinity()),
+                          [](auto a, auto b) {
+                            if (std::isnan(a.x)) return b;
+                            if (std::isnan(b.x)) return a;
+                            return la::min(a, b);
+                          });
+  bBox_.max = std::reduce(vertPos_.begin(), vertPos_.end(),
+                          vec3(-std::numeric_limits<double>::infinity()),
+                          [](auto a, auto b) {
+                            if (std::isnan(a.x)) return b;
+                            if (std::isnan(b.x)) return a;
+                            return la::max(a, b);
+                          });
 }
 
 /**

@@ -78,34 +78,6 @@ void for_each_n(ExecutionPolicy policy, Iter first, size_t n, F f) {
   for_each(policy, first, first + n, f);
 }
 
-// Reduce the range `[first, last)` using a binary operation `f` with an initial
-// value `init`.
-//
-// The binary operation should be commutative and associative. Otherwise, the
-// result is non-deterministic.
-template <typename InputIter, typename BinaryOp,
-          typename T = typename std::iterator_traits<InputIter>::value_type>
-T reduce(ExecutionPolicy policy, InputIter first, InputIter last, T init,
-         BinaryOp f) {
-  static_assert(std::is_convertible_v<
-                    typename std::iterator_traits<InputIter>::iterator_category,
-                    std::random_access_iterator_tag>,
-                "You can only parallelize RandomAccessIterator.");
-
-  return std::reduce(first, last, init, f);
-}
-
-// Reduce the range `[first, last)` using a binary operation `f` with an initial
-// value `init`.
-//
-// The binary operation should be commutative and associative. Otherwise, the
-// result is non-deterministic.
-template <typename InputIter, typename BinaryOp,
-          typename T = typename std::iterator_traits<InputIter>::value_type>
-T reduce(InputIter first, InputIter last, T init, BinaryOp f) {
-  return reduce(autoPolicy(first, last, 1e5), first, last, init, f);
-}
-
 // Transform and reduce the range `[first, last)` by first applying a unary
 // function `g`, and then combining the results using a binary operation `f`
 // with an initial value `init`.
@@ -117,8 +89,8 @@ template <typename InputIter, typename BinaryOp, typename UnaryOp,
               UnaryOp, typename std::iterator_traits<InputIter>::value_type>>
 T transform_reduce(ExecutionPolicy policy, InputIter first, InputIter last,
                    T init, BinaryOp f, UnaryOp g) {
-  return reduce(policy, TransformIterator(first, g), TransformIterator(last, g),
-                init, f);
+  return std::reduce(policy, TransformIterator(first, g),
+                     TransformIterator(last, g), init, f);
 }
 
 // Transform and reduce the range `[first, last)` by first applying a unary
@@ -132,8 +104,8 @@ template <typename InputIter, typename BinaryOp, typename UnaryOp,
               UnaryOp, typename std::iterator_traits<InputIter>::value_type>>
 T transform_reduce(InputIter first, InputIter last, T init, BinaryOp f,
                    UnaryOp g) {
-  return manifold::reduce(TransformIterator(first, g),
-                          TransformIterator(last, g), init, f);
+  return std::reduce(TransformIterator(first, g), TransformIterator(last, g),
+                     init, f);
 }
 
 // Copy the input range `[first, last)` to the output range
