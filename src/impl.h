@@ -96,23 +96,23 @@ struct Manifold::Impl {
       return;
     }
 
-    if (!manifold::all_of(meshGL.vertProperties.begin(),
-                          meshGL.vertProperties.end(),
-                          [](Precision x) { return std::isfinite(x); })) {
+    if (!manifold::std::all_of(meshGL.vertProperties.begin(),
+                               meshGL.vertProperties.end(),
+                               [](Precision x) { return std::isfinite(x); })) {
       MarkFailure(Error::NonFiniteVertex);
       return;
     }
 
-    if (!manifold::all_of(meshGL.runTransform.begin(),
-                          meshGL.runTransform.end(),
-                          [](Precision x) { return std::isfinite(x); })) {
+    if (!manifold::std::all_of(meshGL.runTransform.begin(),
+                               meshGL.runTransform.end(),
+                               [](Precision x) { return std::isfinite(x); })) {
       MarkFailure(Error::InvalidConstruction);
       return;
     }
 
-    if (!manifold::all_of(meshGL.halfedgeTangent.begin(),
-                          meshGL.halfedgeTangent.end(),
-                          [](Precision x) { return std::isfinite(x); })) {
+    if (!manifold::std::all_of(meshGL.halfedgeTangent.begin(),
+                               meshGL.halfedgeTangent.end(),
+                               [](Precision x) { return std::isfinite(x); })) {
       MarkFailure(Error::InvalidConstruction);
       return;
     }

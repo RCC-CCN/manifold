@@ -187,7 +187,7 @@ std::tuple<Vec<int>, Vec<int>> SizeOutput(
            outR.faceNormal_.begin() + std::distance(tmpBuffer.begin(), next));
   }
 
-  auto newEnd = remove(sidesPerFacePQ.begin(), sidesPerFacePQ.end(), 0);
+  auto newEnd = std::remove(sidesPerFacePQ.begin(), sidesPerFacePQ.end(), 0);
   Vec<int> faceEdge(newEnd - sidesPerFacePQ.begin() + 1, 0);
   inclusive_scan(sidesPerFacePQ.begin(), newEnd, faceEdge.begin() + 1);
   outR.halfedge_.resize(faceEdge.back());

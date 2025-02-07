@@ -154,8 +154,8 @@ namespace manifold {
  */
 bool Manifold::Impl::IsManifold() const {
   if (halfedge_.size() == 0) return true;
-  return all_of(countAt(0_uz), countAt(halfedge_.size()),
-                CheckHalfedges({halfedge_}));
+  return std::all_of(countAt(0_uz), countAt(halfedge_.size()),
+                     CheckHalfedges({halfedge_}));
 }
 
 /**
@@ -169,7 +169,7 @@ bool Manifold::Impl::Is2Manifold() const {
   Vec<Halfedge> halfedge(halfedge_);
   stable_sort(halfedge.begin(), halfedge.end());
 
-  return all_of(
+  return std::all_of(
       countAt(0_uz), countAt(2 * NumEdge() - 1), [&halfedge](size_t edge) {
         const Halfedge h = halfedge[edge];
         if (h.startVert == -1 && h.endVert == -1 && h.pairedHalfedge == -1)
@@ -191,7 +191,7 @@ bool Manifold::Impl::IsSelfIntersecting() const {
   SparseIndices collisions = collider_.Collisions<true>(faceBox.cview());
 
   const bool verbose = ManifoldParams().verbose;
-  return !all_of(countAt(0), countAt(collisions.size()), [&](size_t i) {
+  return !std::all_of(countAt(0), countAt(collisions.size()), [&](size_t i) {
     size_t x = collisions.Get(i, false);
     size_t y = collisions.Get(i, true);
     std::array<vec3, 3> tri_x, tri_y;
@@ -229,8 +229,9 @@ bool Manifold::Impl::IsSelfIntersecting() const {
  */
 bool Manifold::Impl::MatchesTriNormals() const {
   if (halfedge_.size() == 0 || faceNormal_.size() != NumTri()) return true;
-  return all_of(countAt(0_uz), countAt(NumTri()),
-                CheckCCW({halfedge_, vertPos_, faceNormal_, 2 * epsilon_}));
+  return std::all_of(
+      countAt(0_uz), countAt(NumTri()),
+      CheckCCW({halfedge_, vertPos_, faceNormal_, 2 * epsilon_}));
 }
 
 /**
