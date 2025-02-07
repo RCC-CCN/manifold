@@ -16,10 +16,6 @@
 #include <functional>
 #include <memory>
 
-#ifdef MANIFOLD_EXPORT
-#include <iostream>
-#endif
-
 #include "manifold/common.h"
 #include "manifold/vec_view.h"
 
@@ -380,10 +376,6 @@ class Manifold {
 
   struct Impl;
 
-#ifdef MANIFOLD_EXPORT
-  static Manifold ImportMeshGL64(std::istream& stream);
-#endif
-
  private:
   Manifold(std::shared_ptr<CsgNode> pNode_);
   Manifold(std::shared_ptr<Impl> pImpl_);
@@ -394,50 +386,5 @@ class Manifold {
 };
 /** @} */
 
-/** @addtogroup Debug
- *  @ingroup Optional
- *  @brief Debugging features
- *
- * The features require compiler flags to be enabled. Assertions are enabled
- * with the MANIFOLD_DEBUG flag and then controlled with ExecutionParams.
- *  @{
- */
-#ifdef MANIFOLD_DEBUG
-inline std::string ToString(const Manifold::Error& error) {
-  switch (error) {
-    case Manifold::Error::NoError:
-      return "No Error";
-    case Manifold::Error::NonFiniteVertex:
-      return "Non Finite Vertex";
-    case Manifold::Error::NotManifold:
-      return "Not Manifold";
-    case Manifold::Error::VertexOutOfBounds:
-      return "Vertex Out Of Bounds";
-    case Manifold::Error::PropertiesWrongLength:
-      return "Properties Wrong Length";
-    case Manifold::Error::MissingPositionProperties:
-      return "Missing Position Properties";
-    case Manifold::Error::MergeVectorsDifferentLengths:
-      return "Merge Vectors Different Lengths";
-    case Manifold::Error::MergeIndexOutOfBounds:
-      return "Merge Index Out Of Bounds";
-    case Manifold::Error::TransformWrongLength:
-      return "Transform Wrong Length";
-    case Manifold::Error::RunIndexWrongLength:
-      return "Run Index Wrong Length";
-    case Manifold::Error::FaceIDWrongLength:
-      return "Face ID Wrong Length";
-    case Manifold::Error::InvalidConstruction:
-      return "Invalid Construction";
-    default:
-      return "Unknown Error";
-  };
-}
-
-inline std::ostream& operator<<(std::ostream& stream,
-                                const Manifold::Error& error) {
-  return stream << ToString(error);
-}
-#endif
 /** @} */
 }  // namespace manifold

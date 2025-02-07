@@ -170,5 +170,4 @@ class CrossSection {
   CrossSection(std::shared_ptr<const PathImpl> paths);
   std::shared_ptr<const PathImpl> GetPaths() const;
 };
-/** @} */
 }  // namespace manifold

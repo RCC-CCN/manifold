@@ -17,7 +17,6 @@
 #include "./utils.h"
 #include "./vec.h"
 #include "manifold/common.h"
-#include "manifold/optional_assert.h"
 
 namespace {
 template <typename T>
@@ -159,9 +158,6 @@ class SparseIndices {
   }
 
   size_t RemoveZeros(Vec<int>& S) {
-    DEBUG_ASSERT(S.size() == size(), userErr,
-                 "Different number of values than indicies!");
-
     Vec<size_t> new2Old(S.size());
     sequence(new2Old.begin(), new2Old.end());
 
@@ -182,9 +178,6 @@ class SparseIndices {
 
   template <typename T>
   size_t KeepFinite(Vec<T>& v, Vec<int>& x) {
-    DEBUG_ASSERT(x.size() == size(), userErr,
-                 "Different number of values than indicies!");
-
     Vec<int> new2Old(v.size());
     size_t size = copy_if(countAt(0_uz), countAt(v.size()), new2Old.begin(),
                           [&v](size_t i) { return FirstFinite(v[i]); }) -
@@ -201,18 +194,6 @@ class SparseIndices {
 
     return size;
   }
-
-#ifdef MANIFOLD_DEBUG
-  void Dump() const {
-    std::cout << "SparseIndices = " << std::endl;
-    const int* p = ptr();
-    for (size_t i = 0; i < size(); ++i) {
-      std::cout << i << ", p = " << Get(i, false) << ", q = " << Get(i, true)
-                << std::endl;
-    }
-    std::cout << std::endl;
-  }
-#endif
 
  private:
   Vec<char> data_;

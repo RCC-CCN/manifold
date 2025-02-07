@@ -30,8 +30,7 @@ namespace {
 vec2 Interpolate(vec3 pL, vec3 pR, double x) {
   const double dxL = x - pL.x;
   const double dxR = x - pR.x;
-  DEBUG_ASSERT(dxL * dxR <= 0, logicErr,
-               "Boolean manifold error: not in domain");
+
   const bool useL = fabs(dxL) < fabs(dxR);
   const vec3 dLR = pR - pL;
   const double lambda = (useL ? dxL : dxR) / dLR.x;
@@ -46,8 +45,7 @@ vec2 Interpolate(vec3 pL, vec3 pR, double x) {
 vec4 Intersect(const vec3 &pL, const vec3 &pR, const vec3 &qL, const vec3 &qR) {
   const double dyL = qL.y - pL.y;
   const double dyR = qR.y - pR.y;
-  DEBUG_ASSERT(dyL * dyR <= 0, logicErr,
-               "Boolean manifold error: no intersection");
+
   const bool useL = fabs(dyL) < fabs(dyR);
   const double dx = pR.x - pL.x;
   double lambda = (useL ? dyL : dyR) / (dyL - dyR);
@@ -238,7 +236,6 @@ struct Kernel11 {
     if (s11 == 0) {  // No intersection
       xyzz11 = vec4(NAN);
     } else {
-      DEBUG_ASSERT(k == 2, logicErr, "Boolean manifold error: s11");
       xyzz11 = Intersect(pRL[0], pRL[1], qRL[0], qRL[1]);
 
       const int p1s = halfedgeP[p1].startVert;
@@ -331,13 +328,12 @@ struct Kernel02 {
     if (s02 == 0) {  // No intersection
       z02 = NAN;
     } else {
-      DEBUG_ASSERT(k == 2, logicErr, "Boolean manifold error: s02");
       vec3 vertPos = vertPosP[p0];
       z02 = Interpolate(yzzRL[0], yzzRL[1], vertPos.y)[1];
       if (forward) {
         if (!Shadows(vertPos.z, z02, expandP * vertNormalP[p0].z)) s02 = 0;
       } else {
-        // DEBUG_ASSERT(closestVert != -1, topologyErr, "No closest vert");
+        //
         if (!Shadows(z02, vertPos.z, expandP * vertNormalP[closestVert].z))
           s02 = 0;
       }
@@ -442,7 +438,6 @@ struct Kernel12 {
     if (x12 == 0) {  // No intersection
       v12 = vec3(NAN);
     } else {
-      DEBUG_ASSERT(k == 2, logicErr, "Boolean manifold error: v12");
       const vec4 xzyy = Intersect(xzyLR0[0], xzyLR0[1], xzyLR1[0], xzyLR1[1]);
       v12.x = xzyy[0];
       v12.y = xzyy[2];
@@ -498,11 +493,6 @@ Boolean3::Boolean3(const Manifold::Impl &inP, const Manifold::Impl &inQ,
   // Union -> expand inP
   // Difference, Intersection -> contract inP
 
-#ifdef MANIFOLD_DEBUG
-  Timer broad;
-  broad.Start();
-#endif
-
   if (inP.IsEmpty() || inQ.IsEmpty() || !inP.bBox_.DoesOverlap(inQ.bBox_)) {
     PRINT("No overlap, early out");
     w03_.resize(inP.NumVert(), 0);
@@ -534,12 +524,6 @@ Boolean3::Boolean3(const Manifold::Impl &inP, const Manifold::Impl &inQ,
   // Find involved edge pairs from Level 3
   SparseIndices p1q1 = Filter11(inP_, inQ_, p1q2_, p2q1_);
   PRINT("p1q1 size = " << p1q1.size());
-
-#ifdef MANIFOLD_DEBUG
-  broad.Stop();
-  Timer intersections;
-  intersections.Start();
-#endif
 
   // Level 2
   // Build up XY-projection intersection of two edges, including the z-value for
@@ -586,14 +570,5 @@ Boolean3::Boolean3(const Manifold::Impl &inP, const Manifold::Impl &inQ,
   w03_ = Winding03(inP, p0, s02, false);
 
   w30_ = Winding03(inQ, q0, s20, true);
-
-#ifdef MANIFOLD_DEBUG
-  intersections.Stop();
-
-  if (ManifoldParams().verbose) {
-    broad.Print("Broad phase");
-    intersections.Print("Intersections");
-  }
-#endif
 }
 }  // namespace manifold

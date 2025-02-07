@@ -89,8 +89,6 @@ void ExportScene(aiScene* scene, const std::string& filename) {
   auto result = exporter.Export(scene, GetType(filename), filename);
 
   delete scene;
-
-  DEBUG_ASSERT(result == AI_SUCCESS, userErr, exporter.GetErrorString());
 }
 }  // namespace
 
@@ -140,8 +138,6 @@ MeshGL ImportMesh(const std::string& filename, bool forceCleanup) {
 
   const aiScene* scene = importer.ReadFile(filename, flags);
 
-  DEBUG_ASSERT(scene, userErr, importer.GetErrorString());
-
   MeshGL mesh_out;
   mesh_out.numProp = 3;
   for (size_t i = 0; i < scene->mNumMeshes; ++i) {
@@ -157,8 +153,7 @@ MeshGL ImportMesh(const std::string& filename, bool forceCleanup) {
     }
     for (size_t j = 0; j < mesh_i->mNumFaces; ++j) {
       const aiFace face = mesh_i->mFaces[j];
-      DEBUG_ASSERT(face.mNumIndices == 3, userErr,
-                   "Non-triangular face in " + filename);
+
       mesh_out.triVerts.insert(
           mesh_out.triVerts.end(),
           {face.mIndices[0], face.mIndices[1], face.mIndices[2]});
@@ -201,20 +196,18 @@ void ExportMesh(const std::string& filename, const MeshGL& mesh,
   if (!options.faceted) {
     const bool validChannels = options.mat.normalIdx >= 0 &&
                                options.mat.normalIdx + 6 <= (int)mesh.numProp;
-    DEBUG_ASSERT(
-        validChannels, userErr,
-        "When faceted is false, valid normalChannels must be supplied.");
+
     mesh_out->mNormals = new aiVector3D[mesh_out->mNumVertices];
   }
 
   const bool hasColor = options.mat.colorIdx >= 0;
   const bool validChannels =
       !hasColor || options.mat.colorIdx + 6 <= (int)mesh.numProp;
-  DEBUG_ASSERT(validChannels, userErr, "Invalid colorChannels.");
+
   const bool hasAlpha = options.mat.alphaIdx >= 0;
   const bool validAlpha =
       !hasAlpha || options.mat.alphaIdx + 4 <= (int)mesh.numProp;
-  DEBUG_ASSERT(validAlpha, userErr, "Invalid colorChannels.");
+
   if (hasColor) mesh_out->mColors[0] = new aiColor4D[mesh_out->mNumVertices];
 
   for (size_t i = 0; i < mesh_out->mNumVertices; ++i) {

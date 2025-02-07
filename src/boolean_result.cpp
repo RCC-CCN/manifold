@@ -282,13 +282,11 @@ std::vector<Halfedge> PairUp(std::vector<EdgePos> &edgePos) {
   // geometrically valid. If the order does not go start-end-start-end... then
   // the input and output are not geometrically valid and this algorithm becomes
   // a heuristic.
-  DEBUG_ASSERT(edgePos.size() % 2 == 0, topologyErr,
-               "Non-manifold edge! Not an even number of points.");
+
   size_t nEdges = edgePos.size() / 2;
   auto middle = std::partition(edgePos.begin(), edgePos.end(),
                                [](EdgePos x) { return x.isStart; });
-  DEBUG_ASSERT(static_cast<size_t>(middle - edgePos.begin()) == nEdges,
-               topologyErr, "Non-manifold edge!");
+
   auto cmp = [](EdgePos a, EdgePos b) { return a.edgePos < b.edgePos; };
   std::stable_sort(edgePos.begin(), middle, cmp);
   std::stable_sort(middle, edgePos.end(), cmp);
@@ -663,13 +661,6 @@ void CreateProperties(Manifold::Impl &outR, const Manifold::Impl &inP,
 namespace manifold {
 
 Manifold::Impl Boolean3::Result(OpType op) const {
-#ifdef MANIFOLD_DEBUG
-  Timer assemble;
-  assemble.Start();
-#endif
-
-  DEBUG_ASSERT((expandP_ > 0) == (op == OpType::Add), logicErr,
-               "Result op type not compatible with constructor op type.");
   const int c1 = op == OpType::Intersect ? 0 : 1;
   const int c2 = op == OpType::Add ? 1 : 0;
   const int c3 = op == OpType::Intersect ? 1 : -1;
@@ -827,30 +818,17 @@ Manifold::Impl Boolean3::Result(OpType op) const {
   vP2R.clear();
   vQ2R.clear();
 
-#ifdef MANIFOLD_DEBUG
-  assemble.Stop();
-  Timer triangulate;
-  triangulate.Start();
-#endif
-
   // Level 6
 
   if (ManifoldParams().intermediateChecks)
-    DEBUG_ASSERT(outR.IsManifold(), logicErr, "polygon mesh is not manifold!");
+    
 
   outR.Face2Tri(faceEdge, halfedgeRef);
   halfedgeRef.clear();
   faceEdge.clear();
 
-#ifdef MANIFOLD_DEBUG
-  triangulate.Stop();
-  Timer simplify;
-  simplify.Start();
-#endif
-
   if (ManifoldParams().intermediateChecks)
-    DEBUG_ASSERT(outR.IsManifold(), logicErr,
-                 "triangulated mesh is not manifold!");
+    
 
   CreateProperties(outR, inP_, inQ_);
 
@@ -859,30 +837,8 @@ Manifold::Impl Boolean3::Result(OpType op) const {
   outR.SimplifyTopology();
   outR.RemoveUnreferencedVerts();
 
-  if (ManifoldParams().intermediateChecks)
-    DEBUG_ASSERT(outR.Is2Manifold(), logicErr,
-                 "simplified mesh is not 2-manifold!");
-
-#ifdef MANIFOLD_DEBUG
-  simplify.Stop();
-  Timer sort;
-  sort.Start();
-#endif
-
-  outR.Finish();
+  if (ManifoldParams().intermediateChecks) outR.Finish();
   outR.IncrementMeshIDs();
-
-#ifdef MANIFOLD_DEBUG
-  sort.Stop();
-  if (ManifoldParams().verbose) {
-    assemble.Print("Assembly");
-    triangulate.Print("Triangulation");
-    simplify.Print("Simplification");
-    sort.Print("Sorting");
-    std::cout << outR.NumVert() << " verts and " << outR.NumTri() << " tris"
-              << std::endl;
-  }
-#endif
 
   return outR;
 }

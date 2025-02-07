@@ -266,13 +266,6 @@ void Manifold::Impl::CleanupTopology() {
         });
 
     if (numFlagged == 0) break;
-
-#ifdef MANIFOLD_DEBUG
-    if (ManifoldParams().verbose) {
-      std::cout << "found " << numFlagged << " duplicate edges to split"
-                << std::endl;
-    }
-#endif
   }
 }
 
@@ -323,13 +316,6 @@ void Manifold::Impl::SimplifyTopology() {
     });
   }
 
-#ifdef MANIFOLD_DEBUG
-  if (ManifoldParams().verbose && numFlagged > 0) {
-    std::cout << "found " << numFlagged << " short edges to collapse"
-              << std::endl;
-  }
-#endif
-
   {
     ZoneScopedN("CollapseFlaggedEdge");
     numFlagged = 0;
@@ -340,13 +326,6 @@ void Manifold::Impl::SimplifyTopology() {
       numFlagged++;
     });
   }
-
-#ifdef MANIFOLD_DEBUG
-  if (ManifoldParams().verbose && numFlagged > 0) {
-    std::cout << "found " << numFlagged << " colinear edges to collapse"
-              << std::endl;
-  }
-#endif
 
   {
     ZoneScopedN("RecursiveEdgeSwap");
@@ -366,12 +345,6 @@ void Manifold::Impl::SimplifyTopology() {
       }
     });
   }
-
-#ifdef MANIFOLD_DEBUG
-  if (ManifoldParams().verbose && numFlagged > 0) {
-    std::cout << "found " << numFlagged << " edges to swap" << std::endl;
-  }
-#endif
 }
 
 // Deduplicate the given 4-manifold edge by duplicating endVert, thus making the
@@ -483,7 +456,6 @@ void Manifold::Impl::UpdateVert(int vert, int startEdge, int endEdge) {
     current = NextHalfedge(current);
     halfedge_[current].startVert = vert;
     current = halfedge_[current].pairedHalfedge;
-    DEBUG_ASSERT(current != startEdge, logicErr, "infinite loop in decimator!");
   }
 }
 

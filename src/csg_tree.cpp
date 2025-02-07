@@ -114,46 +114,7 @@ std::shared_ptr<CsgLeafNode> ImplToLeaf(Manifold::Impl &&impl) {
 
 std::shared_ptr<CsgLeafNode> SimpleBoolean(const Manifold::Impl &a,
                                            const Manifold::Impl &b, OpType op) {
-#ifdef MANIFOLD_DEBUG
-  auto dump = [&]() {
-    dump_lock.lock();
-    std::cout << "LHS self-intersecting: " << a.IsSelfIntersecting()
-              << std::endl;
-    std::cout << "RHS self-intersecting: " << b.IsSelfIntersecting()
-              << std::endl;
-    if (ManifoldParams().verbose) {
-      if (op == OpType::Add)
-        std::cout << "Add";
-      else if (op == OpType::Intersect)
-        std::cout << "Intersect";
-      else
-        std::cout << "Subtract";
-      std::cout << std::endl;
-      std::cout << a;
-      std::cout << b;
-    }
-    dump_lock.unlock();
-  };
-  try {
-    Boolean3 boolean(a, b, op);
-    auto impl = boolean.Result(op);
-    if (ManifoldParams().intermediateChecks && impl.IsSelfIntersecting()) {
-      dump_lock.lock();
-      std::cout << "self intersections detected" << std::endl;
-      dump_lock.unlock();
-      throw logicErr("self intersection detected");
-    }
-    return ImplToLeaf(std::move(impl));
-  } catch (logicErr &err) {
-    dump();
-    throw err;
-  } catch (geometryErr &err) {
-    dump();
-    throw err;
-  }
-#else
   return ImplToLeaf(Boolean3(a, b, op).Result(op));
-#endif
 }
 
 /**
@@ -345,8 +306,7 @@ std::shared_ptr<CsgLeafNode> CsgLeafNode::Compose(
 std::shared_ptr<CsgLeafNode> BatchBoolean(
     OpType operation, std::vector<std::shared_ptr<CsgLeafNode>> &results) {
   ZoneScoped;
-  DEBUG_ASSERT(operation != OpType::Subtract, logicErr,
-               "BatchBoolean doesn't support Difference.");
+
   // common cases
   if (results.size() == 0) return std::make_shared<CsgLeafNode>();
   if (results.size() == 1) return results.front();
@@ -414,8 +374,7 @@ std::shared_ptr<CsgLeafNode> BatchUnion(
   // If the number of children exceeded this limit, we will operate on chunks
   // with size kMaxUnionSize.
   constexpr size_t kMaxUnionSize = 1000;
-  DEBUG_ASSERT(!children.empty(), logicErr,
-               "BatchUnion should not have empty children");
+
   while (children.size() > 1) {
     const size_t start = (children.size() > kMaxUnionSize)
                              ? (children.size() - kMaxUnionSize)

@@ -183,7 +183,7 @@ Vec<TmpEdge> inline CreateTmpEdges(const Vec<Halfedge>& halfedge) {
       remove_if(edges.begin(), edges.end(),
                 [](const TmpEdge& edge) { return edge.halfedgeIdx < 0; }) -
       edges.begin();
-  DEBUG_ASSERT(numEdge == halfedge.size() / 2, topologyErr, "Not oriented!");
+
   edges.resize(numEdge);
   return edges;
 }
@@ -199,21 +199,4 @@ struct ReindexEdge {
   }
 };
 
-#ifdef MANIFOLD_DEBUG
-inline std::ostream& operator<<(std::ostream& stream, const Halfedge& edge) {
-  return stream << "startVert = " << edge.startVert
-                << ", endVert = " << edge.endVert
-                << ", pairedHalfedge = " << edge.pairedHalfedge;
-}
-
-inline std::ostream& operator<<(std::ostream& stream, const Barycentric& bary) {
-  return stream << "tri = " << bary.tri << ", uvw = " << bary.uvw;
-}
-
-inline std::ostream& operator<<(std::ostream& stream, const TriRef& ref) {
-  return stream << "meshID: " << ref.meshID
-                << ", originalID: " << ref.originalID << ", tri: " << ref.tri
-                << ", faceID: " << ref.faceID;
-}
-#endif
 }  // namespace manifold

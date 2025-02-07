@@ -16,11 +16,7 @@
 #include <limits>
 #include <vector>
 
-#ifdef MANIFOLD_DEBUG
-#include <chrono>
-#endif
-
-#include "manifold/linalg.h"
+#include "linalg.h"
 
 namespace manifold {
 /** @addtogroup Math
@@ -48,7 +44,6 @@ using ivec2 = la::vec<int, 2>;
 using ivec3 = la::vec<int, 3>;
 using ivec4 = la::vec<int, 4>;
 using quat = la::vec<double, 4>;
-/** @} */
 
 /** @addtogroup Scalar
  * @ingroup Math
@@ -115,7 +110,6 @@ inline double sind(double x) {
  * @param x Angle in degrees.
  */
 inline double cosd(double x) { return sind(x + 90.0); }
-/** @} */
 
 /** @addtogroup Structs
  * @ingroup Core
@@ -562,7 +556,6 @@ class Quality {
     circularEdgeLength_ = DEFAULT_LENGTH;
   }
 };
-/** @} */
 
 /** @addtogroup Debug
  * @ingroup Optional
@@ -589,62 +582,5 @@ struct ExecutionParams {
   /// Perform optional but recommended triangle cleanups in SimplifyTopology()
   bool cleanupTriangles = true;
 };
-/** @} */
 
-#ifdef MANIFOLD_DEBUG
-inline std::ostream& operator<<(std::ostream& stream, const Box& box) {
-  return stream << "min: " << box.min << ", "
-                << "max: " << box.max;
-}
-
-inline std::ostream& operator<<(std::ostream& stream, const Rect& box) {
-  return stream << "min: " << box.min << ", "
-                << "max: " << box.max;
-}
-
-/**
- * Print the contents of this vector to standard output. Only exists if compiled
- * with MANIFOLD_DEBUG flag.
- */
-template <typename T>
-void Dump(const std::vector<T>& vec) {
-  std::cout << "Vec = " << std::endl;
-  for (size_t i = 0; i < vec.size(); ++i) {
-    std::cout << i << ", " << vec[i] << ", " << std::endl;
-  }
-  std::cout << std::endl;
-}
-
-template <typename T>
-void Diff(const std::vector<T>& a, const std::vector<T>& b) {
-  std::cout << "Diff = " << std::endl;
-  if (a.size() != b.size()) {
-    std::cout << "a and b must have the same length, aborting Diff"
-              << std::endl;
-    return;
-  }
-  for (size_t i = 0; i < a.size(); ++i) {
-    if (a[i] != b[i])
-      std::cout << i << ": " << a[i] << ", " << b[i] << std::endl;
-  }
-  std::cout << std::endl;
-}
-
-struct Timer {
-  std::chrono::high_resolution_clock::time_point start, end;
-
-  void Start() { start = std::chrono::high_resolution_clock::now(); }
-
-  void Stop() { end = std::chrono::high_resolution_clock::now(); }
-
-  float Elapsed() {
-    return std::chrono::duration_cast<std::chrono::milliseconds>(end - start)
-        .count();
-  }
-  void Print(std::string message) {
-    std::cout << "----------- " << std::round(Elapsed()) << " ms for "
-              << message << std::endl;
-  }
-};
-#endif
 }  // namespace manifold

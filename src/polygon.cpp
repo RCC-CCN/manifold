@@ -21,7 +21,6 @@
 #include "./collider.h"
 #include "./parallel.h"
 #include "./utils.h"
-#include "manifold/optional_assert.h"
 
 namespace {
 using namespace manifold;
@@ -35,135 +34,7 @@ constexpr double determinant2x2(vec2 a, vec2 b) {
   return a.x * b.y - a.y * b.x;
 }
 
-#ifdef MANIFOLD_DEBUG
-struct PolyEdge {
-  int startVert, endVert;
-};
-
-std::vector<PolyEdge> Polygons2Edges(const PolygonsIdx &polys) {
-  std::vector<PolyEdge> halfedges;
-  for (const auto &poly : polys) {
-    for (size_t i = 1; i < poly.size(); ++i) {
-      halfedges.push_back({poly[i - 1].idx, poly[i].idx});
-    }
-    halfedges.push_back({poly.back().idx, poly[0].idx});
-  }
-  return halfedges;
-}
-
-std::vector<PolyEdge> Triangles2Edges(const std::vector<ivec3> &triangles) {
-  std::vector<PolyEdge> halfedges;
-  halfedges.reserve(triangles.size() * 3);
-  for (const ivec3 &tri : triangles) {
-    halfedges.push_back({tri[0], tri[1]});
-    halfedges.push_back({tri[1], tri[2]});
-    halfedges.push_back({tri[2], tri[0]});
-  }
-  return halfedges;
-}
-
-void CheckTopology(const std::vector<PolyEdge> &halfedges) {
-  DEBUG_ASSERT(halfedges.size() % 2 == 0, topologyErr,
-               "Odd number of halfedges.");
-  size_t n_edges = halfedges.size() / 2;
-  std::vector<PolyEdge> forward(halfedges.size()), backward(halfedges.size());
-
-  auto end = std::copy_if(halfedges.begin(), halfedges.end(), forward.begin(),
-                          [](PolyEdge e) { return e.endVert > e.startVert; });
-  DEBUG_ASSERT(
-      static_cast<size_t>(std::distance(forward.begin(), end)) == n_edges,
-      topologyErr, "Half of halfedges should be forward.");
-  forward.resize(n_edges);
-
-  end = std::copy_if(halfedges.begin(), halfedges.end(), backward.begin(),
-                     [](PolyEdge e) { return e.endVert < e.startVert; });
-  DEBUG_ASSERT(
-      static_cast<size_t>(std::distance(backward.begin(), end)) == n_edges,
-      topologyErr, "Half of halfedges should be backward.");
-  backward.resize(n_edges);
-
-  std::for_each(backward.begin(), backward.end(),
-                [](PolyEdge &e) { std::swap(e.startVert, e.endVert); });
-  auto cmp = [](const PolyEdge &a, const PolyEdge &b) {
-    return a.startVert < b.startVert ||
-           (a.startVert == b.startVert && a.endVert < b.endVert);
-  };
-  std::stable_sort(forward.begin(), forward.end(), cmp);
-  std::stable_sort(backward.begin(), backward.end(), cmp);
-  for (size_t i = 0; i < n_edges; ++i) {
-    DEBUG_ASSERT(forward[i].startVert == backward[i].startVert &&
-                     forward[i].endVert == backward[i].endVert,
-                 topologyErr, "Not manifold.");
-  }
-}
-
-void CheckTopology(const std::vector<ivec3> &triangles,
-                   const PolygonsIdx &polys) {
-  std::vector<PolyEdge> halfedges = Triangles2Edges(triangles);
-  std::vector<PolyEdge> openEdges = Polygons2Edges(polys);
-  for (PolyEdge e : openEdges) {
-    halfedges.push_back({e.endVert, e.startVert});
-  }
-  CheckTopology(halfedges);
-}
-
-void CheckGeometry(const std::vector<ivec3> &triangles,
-                   const PolygonsIdx &polys, double epsilon) {
-  std::unordered_map<int, vec2> vertPos;
-  for (const auto &poly : polys) {
-    for (size_t i = 0; i < poly.size(); ++i) {
-      vertPos[poly[i].idx] = poly[i].pos;
-    }
-  }
-  DEBUG_ASSERT(std::all_of(triangles.begin(), triangles.end(),
-                           [&vertPos, epsilon](const ivec3 &tri) {
-                             return CCW(vertPos[tri[0]], vertPos[tri[1]],
-                                        vertPos[tri[2]], epsilon) >= 0;
-                           }),
-               geometryErr, "triangulation is not entirely CCW!");
-}
-
-void Dump(const PolygonsIdx &polys, double epsilon) {
-  std::cout << "Polygon 0 " << epsilon << " " << polys.size() << std::endl;
-  for (auto poly : polys) {
-    std::cout << poly.size() << std::endl;
-    for (auto v : poly) {
-      std::cout << v.pos.x << " " << v.pos.y << std::endl;
-    }
-  }
-  std::cout << "# ... " << std::endl;
-  for (auto poly : polys) {
-    std::cout << "show(array([" << std::endl;
-    for (auto v : poly) {
-      std::cout << "  [" << v.pos.x << ", " << v.pos.y << "]," << std::endl;
-    }
-    std::cout << "]))" << std::endl;
-  }
-}
-
-void PrintFailure(const std::exception &e, const PolygonsIdx &polys,
-                  std::vector<ivec3> &triangles, double epsilon) {
-  std::cout << "-----------------------------------" << std::endl;
-  std::cout << "Triangulation failed! Precision = " << epsilon << std::endl;
-  std::cout << e.what() << std::endl;
-  if (triangles.size() > 1000 && !PolygonParams().verbose) {
-    std::cout << "Output truncated due to producing " << triangles.size()
-              << " triangles." << std::endl;
-    return;
-  }
-  Dump(polys, epsilon);
-  std::cout << "produced this triangulation:" << std::endl;
-  for (size_t j = 0; j < triangles.size(); ++j) {
-    std::cout << triangles[j][0] << ", " << triangles[j][1] << ", "
-              << triangles[j][2] << std::endl;
-  }
-}
-
-#define PRINT(msg) \
-  if (params.verbose) std::cout << msg << std::endl;
-#else
 #define PRINT(msg)
-#endif
 
 /**
  * Tests if the input polygons are convex by searching for any reflex vertices.
@@ -531,14 +402,7 @@ class EarClip {
       return totalCost;
     }
 
-    void PrintVert() const {
-#ifdef MANIFOLD_DEBUG
-      if (!params.verbose) return;
-      std::cout << "vert: " << mesh_idx << ", left: " << left->mesh_idx
-                << ", right: " << right->mesh_idx << ", cost: " << cost
-                << std::endl;
-#endif
-    }
+    void PrintVert() const {}
   };
 
   static vec2 SafeNormalize(vec2 v) {
@@ -738,13 +602,6 @@ class EarClip {
     connector = FindCloserBridge(start, connector);
 
     JoinPolygons(start, connector);
-
-#ifdef MANIFOLD_DEBUG
-    if (params.verbose) {
-      std::cout << "connected " << start->mesh_idx << " to "
-                << connector->mesh_idx << std::endl;
-    }
-#endif
   }
 
   // This converts the initial guess for the keyhole location into the final one
@@ -901,34 +758,10 @@ class EarClip {
       v = v->right;
     }
 
-    DEBUG_ASSERT(v->right == v->left, logicErr, "Triangulator error!");
     PRINT("Finished poly");
   }
 
-  void Dump(VertItrC start) const {
-#ifdef MANIFOLD_DEBUG
-    if (!params.verbose) return;
-    VertItrC v = start;
-    std::cout << "show(array([" << std::setprecision(15) << std::endl;
-    do {
-      std::cout << "  [" << v->pos.x << ", " << v->pos.y << "],# "
-                << v->mesh_idx << ", cost: " << v->cost << std::endl;
-      v = v->right;
-    } while (v != start);
-    std::cout << "  [" << v->pos.x << ", " << v->pos.y << "],# " << v->mesh_idx
-              << std::endl;
-    std::cout << "]))" << std::endl;
-
-    v = start;
-    std::cout << "polys.push_back({" << std::setprecision(15) << std::endl;
-    do {
-      std::cout << "    {" << v->pos.x << ", " << v->pos.y << "},  //"
-                << std::endl;
-      v = v->right;
-    } while (v != start);
-    std::cout << "});" << std::endl;
-#endif
-  }
+  void Dump(VertItrC start) const {}
 };
 }  // namespace
 
@@ -950,9 +783,7 @@ namespace manifold {
 std::vector<ivec3> TriangulateIdx(const PolygonsIdx &polys, double epsilon) {
   std::vector<ivec3> triangles;
   double updatedEpsilon = epsilon;
-#ifdef MANIFOLD_DEBUG
-  try {
-#endif
+
     if (IsConvex(polys, epsilon)) {  // fast path
       triangles = TriangulateConvex(polys);
     } else {
@@ -960,23 +791,7 @@ std::vector<ivec3> TriangulateIdx(const PolygonsIdx &polys, double epsilon) {
       triangles = triangulator.Triangulate();
       updatedEpsilon = triangulator.GetPrecision();
     }
-#ifdef MANIFOLD_DEBUG
-    if (params.intermediateChecks) {
-      CheckTopology(triangles, polys);
-      if (!params.processOverlaps) {
-        CheckGeometry(triangles, polys, 2 * updatedEpsilon);
-      }
-    }
-  } catch (const geometryErr &e) {
-    if (!params.suppressErrors) {
-      PrintFailure(e, polys, triangles, updatedEpsilon);
-    }
-    throw;
-  } catch (const std::exception &e) {
-    PrintFailure(e, polys, triangles, updatedEpsilon);
-    throw;
-  }
-#endif
+
   return triangles;
 }
 

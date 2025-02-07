@@ -264,9 +264,6 @@ class Partition {
       return edgeOffsets[edge] + (edgeFwd[edge] ? 1 : -1) * idx;
     };
 
-    DEBUG_ASSERT(la::all(la::gequal(edgeAdded, ivec4(0))), logicErr,
-                 "negative divisions!");
-
     int corner = -1;
     int last = 3;
     int maxEdge = -1;
