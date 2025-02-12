@@ -153,8 +153,6 @@ void Manifold::Impl::CleanupTopology() {
   Vec<int> entries;
   FlagStore s;
   while (1) {
-    ZoneScopedN("DedupeEdge");
-
     const size_t nbEdges = halfedge_.size();
     size_t numFlagged = 0;
     {
@@ -228,7 +226,6 @@ void Manifold::Impl::SimplifyTopology() {
 
   FlagStore s;
   {
-    ZoneScopedN("CollapseShortEdge");
     numFlagged = 0;
     ShortEdge se{halfedge_, vertPos_, epsilon_};
     s.run(nbEdges, se, [&](size_t i) {
@@ -239,7 +236,6 @@ void Manifold::Impl::SimplifyTopology() {
   }
 
   {
-    ZoneScopedN("CollapseFlaggedEdge");
     numFlagged = 0;
     FlagEdge se{halfedge_, meshRelation_.triRef};
     s.run(nbEdges, se, [&](size_t i) {
@@ -250,7 +246,6 @@ void Manifold::Impl::SimplifyTopology() {
   }
 
   {
-    ZoneScopedN("RecursiveEdgeSwap");
     numFlagged = 0;
     SwappableEdge se{halfedge_, vertPos_, faceNormal_, tolerance_};
     std::vector<int> edgeSwapStack;
@@ -665,7 +660,6 @@ void Manifold::Impl::RecursiveEdgeSwap(const int edge, int& tag,
 }
 
 void Manifold::Impl::SplitPinchedVerts() {
-  ZoneScoped;
   std::vector<bool> vertProcessed(NumVert(), false);
   std::vector<bool> halfedgeProcessed(halfedge_.size(), false);
   for (size_t i = 0; i < halfedge_.size(); ++i) {

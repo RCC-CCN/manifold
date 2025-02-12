@@ -86,7 +86,6 @@ struct CopyFaceEdges {
 
 SparseIndices Filter11(const Manifold::Impl &inP, const Manifold::Impl &inQ,
                        const SparseIndices &p1q2, const SparseIndices &p2q1) {
-  ZoneScoped;
   SparseIndices p1q1(3 * p1q2.size() + 3 * p2q1.size());
   std::for_each_n(countAt(0_uz), p1q2.size(),
                   CopyFaceEdges<false>({p1q2, p1q1, inQ.halfedge_, 0_uz}));
@@ -254,7 +253,6 @@ std::tuple<Vec<int>, Vec<vec4>> Shadow11(SparseIndices &p1q1,
                                          const Manifold::Impl &inP,
                                          const Manifold::Impl &inQ,
                                          double expandP) {
-  ZoneScoped;
   Vec<int> s11(p1q1.size());
   Vec<vec4> xyzz11(p1q1.size());
 
@@ -345,7 +343,6 @@ std::tuple<Vec<int>, Vec<double>> Shadow02(const Manifold::Impl &inP,
                                            const Manifold::Impl &inQ,
                                            SparseIndices &p0q2, bool forward,
                                            double expandP) {
-  ZoneScoped;
   Vec<int> s02(p0q2.size());
   Vec<double> z02(p0q2.size());
 
@@ -451,7 +448,6 @@ std::tuple<Vec<int>, Vec<vec3>> Intersect12(
     const SparseIndices &p0q2, const Vec<int> &s11, const SparseIndices &p1q1,
     const Vec<double> &z02, const Vec<vec4> &xyzz11, SparseIndices &p1q2,
     bool forward) {
-  ZoneScoped;
   Vec<int> x12(p1q2.size());
   Vec<vec3> v12(p1q2.size());
 
@@ -467,7 +463,6 @@ std::tuple<Vec<int>, Vec<vec3>> Intersect12(
 
 Vec<int> Winding03(const Manifold::Impl &inP, Vec<int> &vertices, Vec<int> &s02,
                    bool reverse) {
-  ZoneScoped;
   // verts that are not shadowed (not in p0q2) have winding number zero.
   Vec<int> w03(inP.NumVert(), 0);
   std::for_each_n(countAt(0), s02.size(),

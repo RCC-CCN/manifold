@@ -196,7 +196,6 @@ int GetLabels(std::vector<int>& components,
 void DedupePropVerts(manifold::Vec<ivec3>& triProp,
                      const Vec<std::pair<int, int>>& vert2vert,
                      size_t numPropVert) {
-  ZoneScoped;
   std::vector<int> vertLabels;
   const int numLabels = GetLabels(vertLabels, vert2vert, numPropVert);
 
@@ -268,7 +267,6 @@ Manifold::Impl::Impl(Shape shape, const mat3x4 m) {
 }
 
 void Manifold::Impl::RemoveUnreferencedVerts() {
-  ZoneScoped;
   const int numVert = NumVert();
   Vec<int> keep(numVert, 0);
   std::for_each(halfedge_.cbegin(), halfedge_.cend(), [&keep](Halfedge h) {
@@ -300,7 +298,6 @@ void Manifold::Impl::InitializeOriginal(bool keepFaceID) {
 }
 
 void Manifold::Impl::CreateFaces() {
-  ZoneScoped;
   Vec<std::pair<int, int>> face2face(halfedge_.size(), {-1, -1});
   Vec<std::pair<int, int>> vert2vert(halfedge_.size(), {-1, -1});
   Vec<double> triArea(NumTri());
@@ -379,7 +376,6 @@ void Manifold::Impl::CreateFaces() {
  * Create the halfedge_ data structure from an input triVerts array like Mesh.
  */
 void Manifold::Impl::CreateHalfedges(const Vec<ivec3>& triVerts) {
-  ZoneScoped;
   const size_t numTri = triVerts.size();
   const int numHalfedge = 3 * numTri;
   // drop the old value first to avoid copy
@@ -493,7 +489,6 @@ void Manifold::Impl::WarpBatch(std::function<void(VecView<vec3>)> warpFunc) {
 }
 
 Manifold::Impl Manifold::Impl::Transform(const mat3x4& transform_) const {
-  ZoneScoped;
   if (transform_ == mat3x4(la::identity)) return *this;
   Impl result;
   if (status_ != Manifold::Error::NoError) {
@@ -582,7 +577,6 @@ void Manifold::Impl::SetEpsilon(double minEpsilon, bool useSingle) {
  * recalculation.
  */
 void Manifold::Impl::CalculateNormals() {
-  ZoneScoped;
   vertNormal_.resize(NumVert());
   std::fill(vertNormal_.begin(), vertNormal_.end(), vec3(0.0));
   bool calculateTriNormal = false;
@@ -630,7 +624,6 @@ void Manifold::Impl::IncrementMeshIDs() {
  */
 SparseIndices Manifold::Impl::EdgeCollisions(const Impl& Q,
                                              bool inverted) const {
-  ZoneScoped;
   Vec<TmpEdge> edges = CreateTmpEdges(Q.halfedge_);
   const size_t numEdge = edges.size();
   Vec<Box> QedgeBB(numEdge);
@@ -661,7 +654,6 @@ SparseIndices Manifold::Impl::EdgeCollisions(const Impl& Q,
  */
 SparseIndices Manifold::Impl::VertexCollisionsZ(VecView<const vec3> vertsIn,
                                                 bool inverted) const {
-  ZoneScoped;
   if (inverted)
     return collider_.Collisions<false, true>(vertsIn);
   else

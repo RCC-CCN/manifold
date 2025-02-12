@@ -116,7 +116,6 @@ std::shared_ptr<CsgLeafNode> SimpleBoolean(const Manifold::Impl &a,
  */
 std::shared_ptr<CsgLeafNode> CsgLeafNode::Compose(
     const std::vector<std::shared_ptr<CsgLeafNode>> &nodes) {
-  ZoneScoped;
   double epsilon = -1;
   double tolerance = -1;
   int numVert = 0;
@@ -294,8 +293,6 @@ std::shared_ptr<CsgLeafNode> CsgLeafNode::Compose(
  */
 std::shared_ptr<CsgLeafNode> BatchBoolean(
     OpType operation, std::vector<std::shared_ptr<CsgLeafNode>> &results) {
-  ZoneScoped;
-
   // common cases
   if (results.size() == 0) return std::make_shared<CsgLeafNode>();
   if (results.size() == 1) return results.front();
@@ -330,7 +327,6 @@ std::shared_ptr<CsgLeafNode> BatchBoolean(
  */
 std::shared_ptr<CsgLeafNode> BatchUnion(
     std::vector<std::shared_ptr<CsgLeafNode>> &children) {
-  ZoneScoped;
   // INVARIANT: children_ is a vector of leaf nodes
   // this kMaxUnionSize is a heuristic to avoid the pairwise disjoint check
   // with O(n^2) complexity to take too long.

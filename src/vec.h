@@ -14,12 +14,6 @@
 
 #pragma once
 #include <cstdlib>
-#if TRACY_ENABLE && TRACY_MEMORY_USAGE
-#include "tracy/Tracy.hpp"
-#else
-#define TracyAllocS(ptr, size, n) (void)0
-#define TracyFreeS(ptr, n) (void)0
-#endif
 #include <vector>
 
 #include "manifold/vec_view.h"

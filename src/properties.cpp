@@ -244,7 +244,6 @@ int Manifold::Impl::NumDegenerateTris() const {
 }
 
 double Manifold::Impl::GetProperty(Property prop) const {
-  ZoneScoped;
   if (IsEmpty()) return 0;
 
   auto Volume = [this](size_t tri) {
@@ -276,7 +275,6 @@ double Manifold::Impl::GetProperty(Property prop) const {
 }
 
 void Manifold::Impl::CalculateCurvature(int gaussianIdx, int meanIdx) {
-  ZoneScoped;
   if (IsEmpty()) return;
   if (gaussianIdx < 0 && meanIdx < 0) return;
   Vec<double> vertMeanCurvature(NumVert(), 0);
@@ -372,7 +370,6 @@ bool Manifold::Impl::IsIndexInBounds(VecView<const ivec3> triVerts) const {
  */
 double Manifold::Impl::MinGap(const Manifold::Impl& other,
                               double searchLength) const {
-  ZoneScoped;
   Vec<Box> faceBoxOther;
   Vec<uint32_t> faceMortonOther;
 

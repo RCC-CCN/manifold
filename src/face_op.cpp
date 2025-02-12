@@ -34,7 +34,6 @@ using AddTriangle = std::function<void(int, ivec3, vec3, TriRef)>;
  */
 void Manifold::Impl::Face2Tri(const Vec<int>& faceEdge,
                               const Vec<TriRef>& halfedgeRef) {
-  ZoneScoped;
   Vec<ivec3> triVerts;
   Vec<vec3> triNormal;
   Vec<TriRef>& triRef = meshRelation_.triRef;

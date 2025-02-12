@@ -60,7 +60,6 @@ Manifold Halfspace(Box bBox, vec3 normal, double originOffset) {
 template <typename Precision, typename I>
 MeshGLP<Precision, I> GetMeshGLImpl(const manifold::Manifold::Impl& impl,
                                     int normalIdx) {
-  ZoneScoped;
   const int numProp = impl.NumProp();
   const int numVert = impl.NumPropVert();
   const int numTri = impl.NumTri();

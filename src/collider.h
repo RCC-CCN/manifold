@@ -251,8 +251,6 @@ class Collider {
 
   Collider(const VecView<const Box>& leafBB,
            const VecView<const uint32_t>& leafMorton) {
-    ZoneScoped;
-
     int num_nodes = 2 * leafBB.size() - 1;
     // assign and allocate members
     nodeBBox_.resize_nofill(num_nodes);
@@ -266,7 +264,6 @@ class Collider {
   }
 
   bool Transform(mat3x4 transform) {
-    ZoneScoped;
     bool axisAligned = true;
     for (int row : {0, 1, 2}) {
       int count = 0;
@@ -283,8 +280,6 @@ class Collider {
   }
 
   void UpdateBoxes(const VecView<const Box>& leafBB) {
-    ZoneScoped;
-
     // copy in leaf node Boxes
     auto leaves = StridedRange(nodeBBox_.begin(), nodeBBox_.end(), 2);
     std::copy(leafBB.cbegin(), leafBB.cend(), leaves.begin());
@@ -300,7 +295,6 @@ class Collider {
             typename T>
   void Collisions(const VecView<const T>& queriesIn,
                   SparseIndices& queryTri) const {
-    ZoneScoped;
     using collider_internal::FindCollision;
 
     std::for_each_n(

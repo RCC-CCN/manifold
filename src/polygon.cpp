@@ -16,6 +16,7 @@
 
 #include <functional>
 #include <map>
+#include <numeric>
 #include <set>
 
 #include "./collider.h"
@@ -106,8 +107,6 @@ std::vector<ivec3> TriangulateConvex(const PolygonsIdx &polys) {
 class EarClip {
  public:
   EarClip(const PolygonsIdx &polys, double epsilon) : epsilon_(epsilon) {
-    ZoneScoped;
-
     size_t numVert = 0;
     for (const SimplePolygonIdx &poly : polys) {
       numVert += poly.size();
@@ -126,8 +125,6 @@ class EarClip {
   }
 
   std::vector<ivec3> Triangulate() {
-    ZoneScoped;
-
     for (const VertItr start : holes_) {
       CutKeyhole(start);
     }
@@ -714,8 +711,6 @@ class EarClip {
   // The main ear-clipping loop. This is called once for each simple polygon -
   // all holes have already been key-holed and joined to an outer polygon.
   void TriangulatePoly(VertItr start) {
-    ZoneScoped;
-
     IdxCollider vertCollider = VertCollider(start);
 
     if (vertCollider.itr.empty()) {

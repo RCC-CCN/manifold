@@ -89,7 +89,6 @@ struct ReindexFace {
 
 template <typename Precision, typename I>
 bool MergeMeshGLP(MeshGLP<Precision, I>& mesh) {
-  ZoneScoped;
   std::multiset<std::pair<int, int>> openEdges;
 
   std::vector<int> merge(mesh.NumVert());
@@ -241,7 +240,6 @@ void Manifold::Impl::Finish() {
  * Sorts the vertices according to their Morton code.
  */
 void Manifold::Impl::SortVerts() {
-  ZoneScoped;
   const auto numVert = NumVert();
   Vec<uint32_t> vertMorton(numVert);
   std::for_each_n(countAt(0), numVert, [this, &vertMorton](const int vert) {
@@ -281,7 +279,6 @@ void Manifold::Impl::SortVerts() {
  */
 void Manifold::Impl::ReindexVerts(const Vec<int>& vertNew2Old,
                                   size_t oldNumVert) {
-  ZoneScoped;
   Vec<int> vertOld2New(oldNumVert);
   scatter(countAt(0), countAt(static_cast<int>(NumVert())), vertNew2Old.begin(),
           vertOld2New.begin());
@@ -292,7 +289,6 @@ void Manifold::Impl::ReindexVerts(const Vec<int>& vertNew2Old,
  * Removes unreferenced property verts and reindexes triProperties.
  */
 void Manifold::Impl::CompactProps() {
-  ZoneScoped;
   if (meshRelation_.numProp == 0) return;
 
   const auto numVerts = meshRelation_.properties.size() / meshRelation_.numProp;
@@ -328,7 +324,6 @@ void Manifold::Impl::CompactProps() {
  */
 void Manifold::Impl::GetFaceBoxMorton(Vec<Box>& faceBox,
                                       Vec<uint32_t>& faceMorton) const {
-  ZoneScoped;
   // faceBox should be initialized
   faceBox.resize(NumTri(), Box());
   faceMorton.resize_nofill(NumTri());
@@ -360,7 +355,6 @@ void Manifold::Impl::GetFaceBoxMorton(Vec<Box>& faceBox,
  * bounding box and Morton code arrays are also sorted accordingly.
  */
 void Manifold::Impl::SortFaces(Vec<Box>& faceBox, Vec<uint32_t>& faceMorton) {
-  ZoneScoped;
   Vec<int> faceNew2Old(NumTri());
   sequence(faceNew2Old.begin(), faceNew2Old.end());
 
@@ -389,7 +383,6 @@ void Manifold::Impl::SortFaces(Vec<Box>& faceBox, Vec<uint32_t>& faceMorton) {
  * faces to gather into this.
  */
 void Manifold::Impl::GatherFaces(const Vec<int>& faceNew2Old) {
-  ZoneScoped;
   const auto numTri = faceNew2Old.size();
   if (meshRelation_.triRef.size() == NumTri())
     Permute(meshRelation_.triRef, faceNew2Old);
@@ -412,7 +405,6 @@ void Manifold::Impl::GatherFaces(const Vec<int>& faceNew2Old) {
 }
 
 void Manifold::Impl::GatherFaces(const Impl& old, const Vec<int>& faceNew2Old) {
-  ZoneScoped;
   const auto numTri = faceNew2Old.size();
 
   meshRelation_.triRef.resize_nofill(numTri);

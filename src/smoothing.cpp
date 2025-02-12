@@ -763,7 +763,6 @@ void Manifold::Impl::DistributeTangents(const Vec<bool>& fixedHalfedges) {
  * the shape to form a sharp corner with minimal oscillation.
  */
 void Manifold::Impl::CreateTangents(int normalIdx) {
-  ZoneScoped;
   const int numVert = NumVert();
   const int numHalfedge = halfedge_.size();
   halfedgeTangent_.clear();
@@ -848,7 +847,6 @@ void Manifold::Impl::CreateTangents(int normalIdx) {
  * for continuity.
  */
 void Manifold::Impl::CreateTangents(std::vector<Smoothness> sharpenedEdges) {
-  ZoneScoped;
   const int numHalfedge = halfedge_.size();
   halfedgeTangent_.clear();
   Vec<vec4> tangent(numHalfedge);
