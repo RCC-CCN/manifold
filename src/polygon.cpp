@@ -65,7 +65,7 @@ bool IsConvex(const PolygonsIdx &polys, double epsilon) {
  * avoid creating high-degree vertices.
  */
 std::vector<ivec3> TriangulateConvex(const PolygonsIdx &polys) {
-  const size_t numTri = manifold::transform_reduce(
+  const size_t numTri = std::transform_reduce(
       polys.begin(), polys.end(), 0_uz,
       [](size_t a, size_t b) { return a + b; },
       [](const SimplePolygonIdx &poly) { return poly.size() - 2; });
@@ -382,7 +382,7 @@ class EarClip {
       const int lid = left->mesh_idx;
       const int rid = right->mesh_idx;
 
-      totalCost = transform_reduce(
+      totalCost = std::transform_reduce(
           countAt(0), countAt(collider.ind.size()), totalCost,
           [](double a, double b) { return std::max(a, b); },
           [&](size_t i) {

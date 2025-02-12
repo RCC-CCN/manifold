@@ -172,7 +172,7 @@ std::shared_ptr<CsgLeafNode> CsgLeafNode::Compose(
     combined.meshRelation_.triProperties.resize_nofill(numTri);
   }
 
-  for_each_n(
+  std::for_each_n(
       countAt(0), nodes.size(),
       [&nodes, &vertIndices, &edgeIndices, &triIndices, &propVertIndices,
        numPropOut, &combined](int i) {
@@ -243,20 +243,21 @@ std::shared_ptr<CsgLeafNode> CsgLeafNode::Compose(
           auto faceNormalBegin =
               TransformIterator(node->pImpl_->faceNormal_.begin(),
                                 TransformNormals({normalTransform}));
-          copy_n(vertPosBegin, node->pImpl_->vertPos_.size(),
-                 combined.vertPos_.begin() + vertIndices[i]);
-          copy_n(faceNormalBegin, node->pImpl_->faceNormal_.size(),
-                 combined.faceNormal_.begin() + triIndices[i]);
+          std::copy_n(vertPosBegin, node->pImpl_->vertPos_.size(),
+                      combined.vertPos_.begin() + vertIndices[i]);
+          std::copy_n(faceNormalBegin, node->pImpl_->faceNormal_.size(),
+                      combined.faceNormal_.begin() + triIndices[i]);
 
           const bool invert = la::determinant(mat3(node->transform_)) < 0;
-          for_each_n(countAt(0), node->pImpl_->halfedgeTangent_.size(),
-                     TransformTangents{combined.halfedgeTangent_,
-                                       edgeIndices[i], mat3(node->transform_),
-                                       invert, node->pImpl_->halfedgeTangent_,
-                                       node->pImpl_->halfedge_});
+          std::for_each_n(
+              countAt(0), node->pImpl_->halfedgeTangent_.size(),
+              TransformTangents{combined.halfedgeTangent_, edgeIndices[i],
+                                mat3(node->transform_), invert,
+                                node->pImpl_->halfedgeTangent_,
+                                node->pImpl_->halfedge_});
           if (invert)
-            for_each_n(countAt(triIndices[i]), node->pImpl_->NumTri(),
-                       FlipTris({combined.halfedge_}));
+            std::for_each_n(countAt(triIndices[i]), node->pImpl_->NumTri(),
+                            FlipTris({combined.halfedge_}));
         }
         // Since the nodes may be copies containing the same meshIDs, it is
         // important to add an offset so that each node instance gets

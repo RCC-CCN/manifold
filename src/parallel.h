@@ -24,48 +24,6 @@
 
 namespace manifold {
 
-enum class ExecutionPolicy {
-  Par,
-  Seq,
-};
-
-constexpr size_t kSeqThreshold = 1e4;
-
-// Applies the function `f` to each element in the range `[first, last)`
-template <typename Iter, typename F>
-void for_each_n(Iter first, size_t n, F f) {
-  static_assert(std::is_convertible_v<
-                    typename std::iterator_traits<Iter>::iterator_category,
-                    std::random_access_iterator_tag>,
-                "You can only parallelize RandomAccessIterator.");
-  std::for_each(first, first + n, f);
-}
-
-// Transform and reduce the range `[first, last)` by first applying a unary
-// function `g`, and then combining the results using a binary operation `f`
-// with an initial value `init`.
-//
-// The binary operation should be commutative and associative. Otherwise, the
-// result is non-deterministic.
-template <typename InputIter, typename BinaryOp, typename UnaryOp,
-          typename T = std::invoke_result_t<
-              UnaryOp, typename std::iterator_traits<InputIter>::value_type>>
-T transform_reduce(InputIter first, InputIter last, T init, BinaryOp f,
-                   UnaryOp g) {
-  return std::reduce(TransformIterator(first, g), TransformIterator(last, g),
-                     init, f);
-}
-
-// Copy the input range `[first, first + n)` to the output range
-// starting from `d_first`.
-//
-// The input range `[first, first + n)` and
-// the output range `[d_first, d_first + n)`
-// must not overlap.
-template <typename InputIter, typename OutputIter>
-void copy_n(InputIter first, size_t n, OutputIter d_first) {
-  std::copy(first, first + n, d_first);
-}
 // `scatter` copies elements from a source range into an output array according
 // to a map. For each iterator `i` in the range `[first, last)`, the value `*i`
 // is assigned to `outputFirst[mapFirst[i - first]]`.  If the same index appears

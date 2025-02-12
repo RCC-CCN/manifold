@@ -90,10 +90,11 @@ SparseIndices Filter11(const Manifold::Impl &inP, const Manifold::Impl &inQ,
                        const SparseIndices &p1q2, const SparseIndices &p2q1) {
   ZoneScoped;
   SparseIndices p1q1(3 * p1q2.size() + 3 * p2q1.size());
-  for_each_n(countAt(0_uz), p1q2.size(),
-             CopyFaceEdges<false>({p1q2, p1q1, inQ.halfedge_, 0_uz}));
-  for_each_n(countAt(0_uz), p2q1.size(),
-             CopyFaceEdges<true>({p2q1, p1q1, inP.halfedge_, p1q2.size()}));
+  std::for_each_n(countAt(0_uz), p1q2.size(),
+                  CopyFaceEdges<false>({p1q2, p1q1, inQ.halfedge_, 0_uz}));
+  std::for_each_n(
+      countAt(0_uz), p2q1.size(),
+      CopyFaceEdges<true>({p2q1, p1q1, inP.halfedge_, p1q2.size()}));
   p1q1.Unique();
   return p1q1;
 }
@@ -259,9 +260,10 @@ std::tuple<Vec<int>, Vec<vec4>> Shadow11(SparseIndices &p1q1,
   Vec<int> s11(p1q1.size());
   Vec<vec4> xyzz11(p1q1.size());
 
-  for_each_n(countAt(0_uz), p1q1.size(),
-             Kernel11({xyzz11, s11, inP.vertPos_, inQ.vertPos_, inP.halfedge_,
-                       inQ.halfedge_, expandP, inP.vertNormal_, p1q1}));
+  std::for_each_n(
+      countAt(0_uz), p1q1.size(),
+      Kernel11({xyzz11, s11, inP.vertPos_, inQ.vertPos_, inP.halfedge_,
+                inQ.halfedge_, expandP, inP.vertNormal_, p1q1}));
 
   p1q1.KeepFinite(xyzz11, s11);
 
@@ -350,9 +352,9 @@ std::tuple<Vec<int>, Vec<double>> Shadow02(const Manifold::Impl &inP,
   Vec<double> z02(p0q2.size());
 
   auto vertNormalP = forward ? inP.vertNormal_ : inQ.vertNormal_;
-  for_each_n(countAt(0_uz), p0q2.size(),
-             Kernel02({s02, z02, inP.vertPos_, inQ.halfedge_, inQ.vertPos_,
-                       expandP, vertNormalP, p0q2, forward}));
+  std::for_each_n(countAt(0_uz), p0q2.size(),
+                  Kernel02({s02, z02, inP.vertPos_, inQ.halfedge_, inQ.vertPos_,
+                            expandP, vertNormalP, p0q2, forward}));
 
   p0q2.KeepFinite(z02, s02);
 
@@ -455,7 +457,7 @@ std::tuple<Vec<int>, Vec<vec3>> Intersect12(
   Vec<int> x12(p1q2.size());
   Vec<vec3> v12(p1q2.size());
 
-  for_each_n(
+  std::for_each_n(
       countAt(0_uz), p1q2.size(),
       Kernel12({x12, v12, p0q2.AsVec64(), s02, z02, p1q1.AsVec64(), s11, xyzz11,
                 inP.halfedge_, inQ.halfedge_, inP.vertPos_, forward, p1q2}));
@@ -470,10 +472,10 @@ Vec<int> Winding03(const Manifold::Impl &inP, Vec<int> &vertices, Vec<int> &s02,
   ZoneScoped;
   // verts that are not shadowed (not in p0q2) have winding number zero.
   Vec<int> w03(inP.NumVert(), 0);
-  for_each_n(countAt(0), s02.size(),
-             [&w03, &vertices, &s02, reverse](const int i) {
-               w03[vertices[i]] += s02[i] * (reverse ? -1 : 1);
-             });
+  std::for_each_n(countAt(0), s02.size(),
+                  [&w03, &vertices, &s02, reverse](const int i) {
+                    w03[vertices[i]] += s02[i] * (reverse ? -1 : 1);
+                  });
 
   return w03;
 };

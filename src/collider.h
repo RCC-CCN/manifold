@@ -260,9 +260,9 @@ class Collider {
     nodeParent_.resize(num_nodes, -1);
     internalChildren_.resize(leafBB.size() - 1, std::make_pair(-1, -1));
     // organize tree
-    for_each_n(countAt(0), NumInternal(),
-               collider_internal::CreateRadixTree(
-                   {nodeParent_, internalChildren_, leafMorton}));
+    std::for_each_n(countAt(0), NumInternal(),
+                    collider_internal::CreateRadixTree(
+                        {nodeParent_, internalChildren_, leafMorton}));
     UpdateBoxes(leafBB);
   }
 
@@ -292,9 +292,9 @@ class Collider {
     // create global counters
     Vec<int> counter(NumInternal(), 0);
     // kernel over leaves to save internal Boxes
-    for_each_n(countAt(0), NumLeaves(),
-               collider_internal::BuildInternalBoxes(
-                   {nodeBBox_, counter, nodeParent_, internalChildren_}));
+    std::for_each_n(countAt(0), NumLeaves(),
+                    collider_internal::BuildInternalBoxes(
+                        {nodeBBox_, counter, nodeParent_, internalChildren_}));
   }
 
   template <const bool selfCollision = false, const bool inverted = false,
@@ -304,10 +304,11 @@ class Collider {
     ZoneScoped;
     using collider_internal::FindCollision;
 
-    for_each_n(countAt(0), queriesIn.size(),
-               FindCollision<T, selfCollision,
-                             collider_internal::SeqCollisionRecorder<inverted>>{
-                   queriesIn, nodeBBox_, internalChildren_, {queryTri}});
+    std::for_each_n(
+        countAt(0), queriesIn.size(),
+        FindCollision<T, selfCollision,
+                      collider_internal::SeqCollisionRecorder<inverted>>{
+            queriesIn, nodeBBox_, internalChildren_, {queryTri}});
   }
 
   template <const bool selfCollision = false, const bool inverted = false,

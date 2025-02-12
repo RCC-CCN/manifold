@@ -122,12 +122,12 @@ std::tuple<Vec<int>, Vec<int>> SizeOutput(
   std::for_each(countAt(0_uz), countAt(inQ.halfedge_.size()),
                 CountVerts<false>({inQ.halfedge_, sidesPerFaceQ, i30}));
 
-  for_each_n(countAt(0), i12.size(),
-             CountNewVerts<false, false>(
-                 {sidesPerFaceP, sidesPerFaceQ, i12, p1q2, inP.halfedge_}));
-  for_each_n(countAt(0), i21.size(),
-             CountNewVerts<true, false>(
-                 {sidesPerFaceQ, sidesPerFaceP, i21, p2q1, inQ.halfedge_}));
+  std::for_each_n(countAt(0), i12.size(),
+                  CountNewVerts<false, false>({sidesPerFaceP, sidesPerFaceQ,
+                                               i12, p1q2, inP.halfedge_}));
+  std::for_each_n(countAt(0), i21.size(),
+                  CountNewVerts<true, false>({sidesPerFaceQ, sidesPerFaceP, i21,
+                                              p2q1, inQ.halfedge_}));
 
   Vec<int> facePQ2R(inP.NumTri() + inQ.NumTri() + 1, 0);
   auto keepFace = TransformIterator(sidesPerFacePQ.begin(),
@@ -467,7 +467,7 @@ void AppendWholeEdges(Manifold::Impl &outR, Vec<int> &facePtrR,
                       const Vec<int> &vP2R, VecView<const int> faceP2R,
                       bool forward) {
   ZoneScoped;
-  for_each_n(
+  std::for_each_n(
       countAt(0), inP.halfedge_.size(),
       DuplicateHalfedges({outR.halfedge_, halfedgeRef, facePtrR, wholeHalfedgeP,
                           inP.halfedge_, i03, vP2R, faceP2R, forward}));
@@ -489,7 +489,7 @@ struct MapTriRef {
 void UpdateReference(Manifold::Impl &outR, const Manifold::Impl &inP,
                      const Manifold::Impl &inQ, bool invertQ) {
   const int offsetQ = Manifold::Impl::meshIDCounter_;
-  for_each_n(
+  std::for_each_n(
       outR.meshRelation_.triRef.begin(), outR.NumTri(),
       MapTriRef({inP.meshRelation_.triRef, inQ.meshRelation_.triRef, offsetQ}));
 
@@ -547,10 +547,10 @@ void CreateProperties(Manifold::Impl &outR, const Manifold::Impl &inP,
   outR.meshRelation_.triProperties.resize_nofill(numTri);
 
   Vec<vec3> bary(outR.halfedge_.size());
-  for_each_n(countAt(0), numTri,
-             Barycentric({bary, outR.meshRelation_.triRef, inP.vertPos_,
-                          inQ.vertPos_, outR.vertPos_, inP.halfedge_,
-                          inQ.halfedge_, outR.halfedge_, outR.epsilon_}));
+  std::for_each_n(countAt(0), numTri,
+                  Barycentric({bary, outR.meshRelation_.triRef, inP.vertPos_,
+                               inQ.vertPos_, outR.vertPos_, inP.halfedge_,
+                               inQ.halfedge_, outR.halfedge_, outR.epsilon_}));
 
   using Entry = std::pair<ivec3, int>;
   int idMissProp = outR.NumVert();
@@ -725,15 +725,15 @@ Manifold::Impl Boolean3::Result(OpType op) const {
   outR.vertPos_.resize_nofill(numVertR);
   // Add vertices, duplicating for inclusion numbers not in [-1, 1].
   // Retained vertices from P and Q:
-  for_each_n(countAt(0), inP_.NumVert(),
-             DuplicateVerts({outR.vertPos_, i03, vP2R, inP_.vertPos_}));
-  for_each_n(countAt(0), inQ_.NumVert(),
-             DuplicateVerts({outR.vertPos_, i30, vQ2R, inQ_.vertPos_}));
+  std::for_each_n(countAt(0), inP_.NumVert(),
+                  DuplicateVerts({outR.vertPos_, i03, vP2R, inP_.vertPos_}));
+  std::for_each_n(countAt(0), inQ_.NumVert(),
+                  DuplicateVerts({outR.vertPos_, i30, vQ2R, inQ_.vertPos_}));
   // New vertices created from intersections:
-  for_each_n(countAt(0), i12.size(),
-             DuplicateVerts({outR.vertPos_, i12, v12R, v12_}));
-  for_each_n(countAt(0), i21.size(),
-             DuplicateVerts({outR.vertPos_, i21, v21R, v21_}));
+  std::for_each_n(countAt(0), i12.size(),
+                  DuplicateVerts({outR.vertPos_, i12, v12R, v12_}));
+  std::for_each_n(countAt(0), i21.size(),
+                  DuplicateVerts({outR.vertPos_, i21, v21R, v21_}));
 
   PRINT(nPv << " verts from inP");
   PRINT(nQv << " verts from inQ");

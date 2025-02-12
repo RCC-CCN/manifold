@@ -288,13 +288,13 @@ void Manifold::Impl::CalculateCurvature(int gaussianIdx, int meanIdx) {
       countAt(0_uz), countAt(NumTri()),
       CurvatureAngles({vertMeanCurvature, vertGaussianCurvature, vertArea,
                        degree, halfedge_, vertPos_, faceNormal_}));
-  for_each_n(countAt(0), NumVert(),
-             [&vertMeanCurvature, &vertGaussianCurvature, &vertArea,
-              &degree](const int vert) {
-               const double factor = degree[vert] / (6 * vertArea[vert]);
-               vertMeanCurvature[vert] *= factor;
-               vertGaussianCurvature[vert] *= factor;
-             });
+  std::for_each_n(countAt(0), NumVert(),
+                  [&vertMeanCurvature, &vertGaussianCurvature, &vertArea,
+                   &degree](const int vert) {
+                    const double factor = degree[vert] / (6 * vertArea[vert]);
+                    vertMeanCurvature[vert] *= factor;
+                    vertGaussianCurvature[vert] *= factor;
+                  });
 
   const int oldNumProp = NumProp();
   const int numProp = std::max(oldNumProp, std::max(gaussianIdx, meanIdx) + 1);
@@ -306,7 +306,7 @@ void Manifold::Impl::CalculateCurvature(int gaussianIdx, int meanIdx) {
   }
 
   const Vec<uint8_t> counters(NumPropVert(), 0);
-  for_each_n(
+  std::for_each_n(
       countAt(0_uz), NumTri(),
       UpdateProperties({meshRelation_.triProperties, meshRelation_.properties,
                         counters, oldProperties, halfedge_, vertMeanCurvature,
@@ -340,7 +340,7 @@ void Manifold::Impl::CalculateBBox() {
  * is insufficient as it ignores NaNs.
  */
 bool Manifold::Impl::IsFinite() const {
-  return transform_reduce(
+  return std::transform_reduce(
       vertPos_.begin(), vertPos_.end(), true,
       [](bool a, bool b) { return a && b; },
       [](auto v) { return la::all(la::isfinite(v)); });
@@ -351,7 +351,7 @@ bool Manifold::Impl::IsFinite() const {
  * vertPos_ array.
  */
 bool Manifold::Impl::IsIndexInBounds(VecView<const ivec3> triVerts) const {
-  ivec2 minmax = transform_reduce(
+  ivec2 minmax = std::transform_reduce(
       triVerts.begin(), triVerts.end(),
       ivec2(std::numeric_limits<int>::max(), std::numeric_limits<int>::min()),
       [](auto a, auto b) {
@@ -387,7 +387,7 @@ double Manifold::Impl::MinGap(const Manifold::Impl& other,
 
   SparseIndices collisions = collider_.Collisions(faceBoxOther.cview());
 
-  double minDistanceSquared = transform_reduce(
+  double minDistanceSquared = std::transform_reduce(
       countAt(0_uz), countAt(collisions.size()), searchLength * searchLength,
       [](double a, double b) { return std::min(a, b); },
       [&collisions, this, &other](int i) {

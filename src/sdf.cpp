@@ -476,7 +476,7 @@ Manifold Manifold::LevelSet(std::function<double(vec3)> sdf, Box bounds,
 
   const vec3 origin = bounds.min;
   Vec<double> voxels(maxIndex);
-  for_each_n(
+  std::for_each_n(
       countAt(0_uz), maxIndex,
       [&voxels, sdf, level, origin, spacing, gridSize, gridPow](Uint64 idx) {
         voxels[idx] = BoundedSDF(DecodeIndex(idx, gridPow) - kVoxelOffset,
@@ -490,9 +490,10 @@ Manifold Manifold::LevelSet(std::function<double(vec3)> sdf, Box bounds,
 
   while (1) {
     Vec<int> index(1, 0);
-    for_each_n(countAt(0_uz), EncodeIndex(ivec4(gridSize, 1), gridPow),
-               NearSurface({vertPos, index, gridVerts.D(), voxels, sdf, origin,
-                            gridSize, gridPow, spacing, level, tolerance}));
+    std::for_each_n(
+        countAt(0_uz), EncodeIndex(ivec4(gridSize, 1), gridPow),
+        NearSurface({vertPos, index, gridVerts.D(), voxels, sdf, origin,
+                     gridSize, gridPow, spacing, level, tolerance}));
 
     if (gridVerts.Full()) {  // Resize HashTable
       const vec3 lastVert = vertPos[index[0] - 1];
@@ -507,7 +508,7 @@ Manifold Manifold::LevelSet(std::function<double(vec3)> sdf, Box bounds,
       gridVerts = HashTable<GridVert>(tableSize);
       vertPos = Vec<vec3>(gridVerts.Size() * 7);
     } else {  // Success
-      for_each_n(
+      std::for_each_n(
           countAt(0), gridVerts.Size(),
           ComputeVerts({vertPos, index, gridVerts.D(), voxels, sdf, origin,
                         gridSize, gridPow, spacing, level, tolerance}));
@@ -519,8 +520,8 @@ Manifold Manifold::LevelSet(std::function<double(vec3)> sdf, Box bounds,
   Vec<ivec3> triVerts(gridVerts.Entries() * 12);  // worst case
 
   Vec<int> index(1, 0);
-  for_each_n(countAt(0), gridVerts.Size(),
-             BuildTris({triVerts, index, gridVerts.D(), gridPow}));
+  std::for_each_n(countAt(0), gridVerts.Size(),
+                  BuildTris({triVerts, index, gridVerts.D(), gridPow}));
   triVerts.resize(index[0]);
 
   pImpl_->CreateHalfedges(triVerts);

@@ -167,11 +167,12 @@ Manifold Manifold::Sphere(double radius, int circularSegments) {
   auto pImpl_ = std::make_shared<Impl>(Impl::Shape::Octahedron);
   pImpl_->Subdivide(
       [n](vec3 edge, vec4 tangentStart, vec4 tangentEnd) { return n - 1; });
-  for_each_n(pImpl_->vertPos_.begin(), pImpl_->NumVert(), [radius](vec3& v) {
-    v = la::cos(kHalfPi * (1.0 - v));
-    v = radius * la::normalize(v);
-    if (std::isnan(v.x)) v = vec3(0.0);
-  });
+  std::for_each_n(pImpl_->vertPos_.begin(), pImpl_->NumVert(),
+                  [radius](vec3& v) {
+                    v = la::cos(kHalfPi * (1.0 - v));
+                    v = radius * la::normalize(v);
+                    if (std::isnan(v.x)) v = vec3(0.0);
+                  });
   pImpl_->Finish();
   // Ignore preceding octahedron.
   pImpl_->InitializeOriginal();

@@ -654,7 +654,7 @@ Manifold Manifold::SetProperties(
     } else {
       pImpl->meshRelation_.properties = Vec<double>(numProp * NumPropVert(), 0);
     }
-    for_each_n(
+    std::for_each_n(
         countAt(0), NumTri(),
         UpdateProperties(
             {pImpl->meshRelation_.properties.data(), numProp,

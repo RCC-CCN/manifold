@@ -172,7 +172,7 @@ struct TmpEdge {
 
 Vec<TmpEdge> inline CreateTmpEdges(const Vec<Halfedge>& halfedge) {
   Vec<TmpEdge> edges(halfedge.size());
-  for_each_n(countAt(0), edges.size(), [&edges, &halfedge](const int idx) {
+  std::for_each_n(countAt(0), edges.size(), [&edges, &halfedge](const int idx) {
     const Halfedge& half = halfedge[idx];
     edges[idx] =
         TmpEdge(half.startVert, half.endVert, half.IsForward() ? idx : -1);

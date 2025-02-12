@@ -131,7 +131,7 @@ bool MergeMeshGLP(MeshGLP<Precision, I>& mesh) {
   for (const int i : {0, 1, 2}) {
     auto iPos =
         StridedRange(vertPropD.begin() + i, vertPropD.end(), mesh.numProp);
-    auto minMax = manifold::transform_reduce(
+    auto minMax = std::transform_reduce(
         iPos.begin(), iPos.end(),
         std::make_pair(std::numeric_limits<double>::infinity(),
                        -std::numeric_limits<double>::infinity()),
@@ -153,20 +153,21 @@ bool MergeMeshGLP(MeshGLP<Precision, I>& mesh) {
   Vec<Box> vertBox(numOpenVert);
   Vec<uint32_t> vertMorton(numOpenVert);
 
-  for_each_n(countAt(0), numOpenVert,
-             [&vertMorton, &vertBox, &openVerts, &bBox, &mesh,
-              tolerance](const int i) {
-               int vert = openVerts[i];
+  std::for_each_n(countAt(0), numOpenVert,
+                  [&vertMorton, &vertBox, &openVerts, &bBox, &mesh,
+                   tolerance](const int i) {
+                    int vert = openVerts[i];
 
-               const vec3 center(mesh.vertProperties[mesh.numProp * vert],
-                                 mesh.vertProperties[mesh.numProp * vert + 1],
-                                 mesh.vertProperties[mesh.numProp * vert + 2]);
+                    const vec3 center(
+                        mesh.vertProperties[mesh.numProp * vert],
+                        mesh.vertProperties[mesh.numProp * vert + 1],
+                        mesh.vertProperties[mesh.numProp * vert + 2]);
 
-               vertBox[i].min = center - tolerance / 2.0;
-               vertBox[i].max = center + tolerance / 2.0;
+                    vertBox[i].min = center - tolerance / 2.0;
+                    vertBox[i].max = center + tolerance / 2.0;
 
-               vertMorton[i] = MortonCode(center, bBox);
-             });
+                    vertMorton[i] = MortonCode(center, bBox);
+                  });
 
   Vec<int> vertNew2Old(numOpenVert);
   sequence(vertNew2Old.begin(), vertNew2Old.end());
@@ -243,7 +244,7 @@ void Manifold::Impl::SortVerts() {
   ZoneScoped;
   const auto numVert = NumVert();
   Vec<uint32_t> vertMorton(numVert);
-  for_each_n(countAt(0), numVert, [this, &vertMorton](const int vert) {
+  std::for_each_n(countAt(0), numVert, [this, &vertMorton](const int vert) {
     vertMorton[vert] = MortonCode(vertPos_[vert], bBox_);
   });
 
@@ -307,7 +308,7 @@ void Manifold::Impl::CompactProps() {
   const int numProp = meshRelation_.numProp;
   auto& properties = meshRelation_.properties;
   properties.resize_nofill(numProp * numVertsNew);
-  for_each_n(
+  std::for_each_n(
       countAt(0), numVerts,
       [&properties, &oldProp, &propOld2New, &keep, &numProp](const int oldIdx) {
         if (keep[oldIdx] == 0) return;
@@ -316,8 +317,8 @@ void Manifold::Impl::CompactProps() {
               oldProp[oldIdx * numProp + p];
         }
       });
-  for_each_n(meshRelation_.triProperties.begin(), NumTri(),
-             ReindexProps({propOld2New}));
+  std::for_each_n(meshRelation_.triProperties.begin(), NumTri(),
+                  ReindexProps({propOld2New}));
 }
 
 /**
@@ -331,27 +332,27 @@ void Manifold::Impl::GetFaceBoxMorton(Vec<Box>& faceBox,
   // faceBox should be initialized
   faceBox.resize(NumTri(), Box());
   faceMorton.resize_nofill(NumTri());
-  for_each_n(countAt(0), NumTri(),
-             [this, &faceBox, &faceMorton](const int face) {
-               // Removed tris are marked by all halfedges having pairedHalfedge
-               // = -1, and this will sort them to the end (the Morton code only
-               // uses the first 30 of 32 bits).
-               if (halfedge_[3 * face].pairedHalfedge < 0) {
-                 faceMorton[face] = kNoCode;
-                 return;
-               }
+  std::for_each_n(
+      countAt(0), NumTri(), [this, &faceBox, &faceMorton](const int face) {
+        // Removed tris are marked by all halfedges having pairedHalfedge
+        // = -1, and this will sort them to the end (the Morton code only
+        // uses the first 30 of 32 bits).
+        if (halfedge_[3 * face].pairedHalfedge < 0) {
+          faceMorton[face] = kNoCode;
+          return;
+        }
 
-               vec3 center(0.0);
+        vec3 center(0.0);
 
-               for (const int i : {0, 1, 2}) {
-                 const vec3 pos = vertPos_[halfedge_[3 * face + i].startVert];
-                 center += pos;
-                 faceBox[face].Union(pos);
-               }
-               center /= 3;
+        for (const int i : {0, 1, 2}) {
+          const vec3 pos = vertPos_[halfedge_[3 * face + i].startVert];
+          center += pos;
+          faceBox[face].Union(pos);
+        }
+        center /= 3;
 
-               faceMorton[face] = MortonCode(center, bBox_);
-             });
+        faceMorton[face] = MortonCode(center, bBox_);
+      });
 }
 
 /**
@@ -405,9 +406,9 @@ void Manifold::Impl::GatherFaces(const Vec<int>& faceNew2Old) {
   halfedge_.resize_nofill(3 * numTri);
   if (oldHalfedgeTangent.size() != 0)
     halfedgeTangent_.resize_nofill(3 * numTri);
-  for_each_n(countAt(0), numTri,
-             ReindexFace({halfedge_, halfedgeTangent_, oldHalfedge,
-                          oldHalfedgeTangent, faceNew2Old, faceOld2New}));
+  std::for_each_n(countAt(0), numTri,
+                  ReindexFace({halfedge_, halfedgeTangent_, oldHalfedge,
+                               oldHalfedgeTangent, faceNew2Old, faceOld2New}));
 }
 
 void Manifold::Impl::GatherFaces(const Impl& old, const Vec<int>& faceNew2Old) {
@@ -444,9 +445,10 @@ void Manifold::Impl::GatherFaces(const Impl& old, const Vec<int>& faceNew2Old) {
   halfedge_.resize_nofill(3 * numTri);
   if (old.halfedgeTangent_.size() != 0)
     halfedgeTangent_.resize_nofill(3 * numTri);
-  for_each_n(countAt(0), numTri,
-             ReindexFace({halfedge_, halfedgeTangent_, old.halfedge_,
-                          old.halfedgeTangent_, faceNew2Old, faceOld2New}));
+  std::for_each_n(
+      countAt(0), numTri,
+      ReindexFace({halfedge_, halfedgeTangent_, old.halfedge_,
+                   old.halfedgeTangent_, faceNew2Old, faceOld2New}));
 }
 
 /**

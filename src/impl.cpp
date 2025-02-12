@@ -279,7 +279,7 @@ void Manifold::Impl::RemoveUnreferencedVerts() {
     }
   });
 
-  for_each_n(countAt(0), numVert, [&keep, this](int v) {
+  std::for_each_n(countAt(0), numVert, [&keep, this](int v) {
     if (keep[v] == 0) {
       vertPos_[v] = vec3(NAN);
     }
@@ -291,11 +291,11 @@ void Manifold::Impl::InitializeOriginal(bool keepFaceID) {
   meshRelation_.originalID = meshID;
   auto& triRef = meshRelation_.triRef;
   triRef.resize_nofill(NumTri());
-  for_each_n(countAt(0), NumTri(),
-             [meshID, keepFaceID, &triRef](const int tri) {
-               triRef[tri] = {meshID, meshID, tri,
-                              keepFaceID ? triRef[tri].faceID : tri};
-             });
+  std::for_each_n(countAt(0), NumTri(),
+                  [meshID, keepFaceID, &triRef](const int tri) {
+                    triRef[tri] = {meshID, meshID, tri,
+                                   keepFaceID ? triRef[tri].faceID : tri};
+                  });
   meshRelation_.meshIDtransform.clear();
   meshRelation_.meshIDtransform[meshID] = {meshID};
 }
@@ -308,7 +308,7 @@ void Manifold::Impl::CreateFaces() {
 
   const size_t numProp = NumProp();
   if (numProp > 0) {
-    for_each_n(
+    std::for_each_n(
         countAt(0), halfedge_.size(),
         [&vert2vert, numProp, this](const int edgeIdx) {
           const Halfedge edge = halfedge_[edgeIdx];
@@ -344,10 +344,11 @@ void Manifold::Impl::CreateFaces() {
     DedupePropVerts(meshRelation_.triProperties, vert2vert, NumPropVert());
   }
 
-  for_each_n(countAt(0), halfedge_.size(),
-             CoplanarEdge({face2face, triArea, halfedge_, vertPos_,
-                           meshRelation_.triRef, meshRelation_.triProperties,
-                           meshRelation_.numProp, epsilon_, tolerance_}));
+  std::for_each_n(
+      countAt(0), halfedge_.size(),
+      CoplanarEdge({face2face, triArea, halfedge_, vertPos_,
+                    meshRelation_.triRef, meshRelation_.triProperties,
+                    meshRelation_.numProp, epsilon_, tolerance_}));
 
   std::vector<int> components;
   const int numComponent = GetLabels(components, face2face, NumTri());
@@ -362,9 +363,9 @@ void Manifold::Impl::CreateFaces() {
     }
   }
 
-  for_each_n(countAt(0), NumTri(),
-             CheckCoplanarity(
-                 {comp2tri, halfedge_, vertPos_, &components, tolerance_}));
+  std::for_each_n(countAt(0), NumTri(),
+                  CheckCoplanarity({comp2tri, halfedge_, vertPos_, &components,
+                                    tolerance_}));
 
   Vec<TriRef>& triRef = meshRelation_.triRef;
   for (size_t tri = 0; tri < NumTri(); ++tri) {
@@ -388,20 +389,19 @@ void Manifold::Impl::CreateHalfedges(const Vec<ivec3>& triVerts) {
   Vec<uint64_t> edge(numHalfedge);
   Vec<int> ids(numHalfedge);
   sequence(ids.begin(), ids.end());
-  for_each_n(countAt(0), numTri,
-             [this, &edge, &triVerts](const int tri) {
-               const ivec3& verts = triVerts[tri];
-               for (const int i : {0, 1, 2}) {
-                 const int j = (i + 1) % 3;
-                 const int e = 3 * tri + i;
-                 halfedge_[e] = {verts[i], verts[j], -1};
-                 // Sort the forward halfedges in front of the backward ones
-                 // by setting the highest-order bit.
-                 edge[e] = uint64_t(verts[i] < verts[j] ? 1 : 0) << 63 |
-                           ((uint64_t)std::min(verts[i], verts[j])) << 32 |
-                           std::max(verts[i], verts[j]);
-               }
-             });
+  std::for_each_n(countAt(0), numTri, [this, &edge, &triVerts](const int tri) {
+    const ivec3& verts = triVerts[tri];
+    for (const int i : {0, 1, 2}) {
+      const int j = (i + 1) % 3;
+      const int e = 3 * tri + i;
+      halfedge_[e] = {verts[i], verts[j], -1};
+      // Sort the forward halfedges in front of the backward ones
+      // by setting the highest-order bit.
+      edge[e] = uint64_t(verts[i] < verts[j] ? 1 : 0) << 63 |
+                ((uint64_t)std::min(verts[i], verts[j])) << 32 |
+                std::max(verts[i], verts[j]);
+    }
+  });
   // Stable sort is required here so that halfedges from the same face are
   // paired together (the triangles were created in face order). In some
   // degenerate situations the triangulator can add the same internal edge in
@@ -438,7 +438,7 @@ void Manifold::Impl::CreateHalfedges(const Vec<ivec3>& triVerts) {
   // Once sorted, the first half of the range is the forward halfedges, which
   // correspond to their backward pair at the same offset in the second half
   // of the range.
-  for_each_n(countAt(0), numEdge, [this, &ids, numEdge](int i) {
+  std::for_each_n(countAt(0), numEdge, [this, &ids, numEdge](int i) {
     const int pair0 = ids[i];
     const int pair1 = ids[i + numEdge];
     if (halfedge_[pair0].startVert >= 0) {
@@ -535,13 +535,14 @@ Manifold::Impl Manifold::Impl::Transform(const mat3x4& transform_) const {
   const bool invert = la::determinant(mat3(transform_)) < 0;
 
   if (halfedgeTangent_.size() > 0) {
-    for_each_n(countAt(0), halfedgeTangent_.size(),
-               TransformTangents({result.halfedgeTangent_, 0, mat3(transform_),
-                                  invert, halfedgeTangent_, halfedge_}));
+    std::for_each_n(
+        countAt(0), halfedgeTangent_.size(),
+        TransformTangents({result.halfedgeTangent_, 0, mat3(transform_), invert,
+                           halfedgeTangent_, halfedge_}));
   }
 
   if (invert) {
-    for_each_n(countAt(0), result.NumTri(), FlipTris({result.halfedge_}));
+    std::for_each_n(countAt(0), result.NumTri(), FlipTris({result.halfedge_}));
   }
 
   // This optimization does a cheap collider update if the transform is
@@ -591,11 +592,11 @@ void Manifold::Impl::CalculateNormals() {
     calculateTriNormal = true;
   }
   if (calculateTriNormal)
-    for_each_n(
+    std::for_each_n(
         countAt(0), NumTri(),
         AssignNormals<true>({faceNormal_, vertNormal_, vertPos_, halfedge_}));
   else
-    for_each_n(
+    std::for_each_n(
         countAt(0), NumTri(),
         AssignNormals<false>({faceNormal_, vertNormal_, vertPos_, halfedge_}));
   std::for_each(vertNormal_.begin(), vertNormal_.end(),
@@ -619,8 +620,8 @@ void Manifold::Impl::IncrementMeshIDs() {
   }
 
   const size_t numTri = NumTri();
-  for_each_n(meshRelation_.triRef.begin(), numTri,
-             UpdateMeshID({meshIDold2new.D()}));
+  std::for_each_n(meshRelation_.triRef.begin(), numTri,
+                  UpdateMeshID({meshIDold2new.D()}));
 }
 
 /**
@@ -635,9 +636,10 @@ SparseIndices Manifold::Impl::EdgeCollisions(const Impl& Q,
   const size_t numEdge = edges.size();
   Vec<Box> QedgeBB(numEdge);
   const auto& vertPos = Q.vertPos_;
-  for_each_n(countAt(0), numEdge, [&QedgeBB, &edges, &vertPos](const int e) {
-    QedgeBB[e] = Box(vertPos[edges[e].first], vertPos[edges[e].second]);
-  });
+  std::for_each_n(
+      countAt(0), numEdge, [&QedgeBB, &edges, &vertPos](const int e) {
+        QedgeBB[e] = Box(vertPos[edges[e].first], vertPos[edges[e].second]);
+      });
 
   SparseIndices q1p2(0);
   if (inverted)
