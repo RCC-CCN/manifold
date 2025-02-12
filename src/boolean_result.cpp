@@ -20,19 +20,6 @@
 #include "./parallel.h"
 #include "./utils.h"
 
-#if (MANIFOLD_PAR == 1) && __has_include(<tbb/concurrent_map.h>)
-#define TBB_PREVIEW_CONCURRENT_ORDERED_CONTAINERS 1
-#include <tbb/concurrent_map.h>
-#include <tbb/parallel_for.h>
-
-template <typename K, typename V>
-using concurrent_map = tbb::concurrent_map<K, V>;
-#else
-template <typename K, typename V>
-// not really concurrent when tbb is disabled
-using concurrent_map = std::map<K, V>;
-#endif
-
 using namespace manifold;
 
 template <>
@@ -193,9 +180,9 @@ __attribute__((no_sanitize("thread")))
 #endif
 #endif
 void AddNewEdgeVerts(
-    // we need concurrent_map because we will be adding things concurrently
-    concurrent_map<int, std::vector<EdgePos>> &edgesP,
-    concurrent_map<std::pair<int, int>, std::vector<EdgePos>> &edgesNew,
+    // we need std::map because we will be adding things concurrently
+    std::map<int, std::vector<EdgePos>> &edgesP,
+    std::map<std::pair<int, int>, std::vector<EdgePos>> &edgesNew,
     const SparseIndices &p1q2, const Vec<int> &i12, const Vec<int> &v12R,
     const Vec<Halfedge> &halfedgeP, bool forward) {
   ZoneScoped;
@@ -234,27 +221,6 @@ void AddNewEdgeVerts(
       direction = !direction;
     }
   };
-#if (MANIFOLD_PAR == 1) && __has_include(<tbb/tbb.h>)
-  // parallelize operations, requires concurrent_map so we can only enable this
-  // with tbb
-  if (p1q2.size() > kParallelThreshold) {
-    // ideally we should have 1 mutex per key, but kParallelThreshold is enough
-    // to avoid contention for most of the cases
-    std::array<std::mutex, kParallelThreshold> mutexes;
-    static tbb::affinity_partitioner ap;
-    auto processFun = std::bind(
-        process, [&](size_t hash) { mutexes[hash % mutexes.size()].lock(); },
-        [&](size_t hash) { mutexes[hash % mutexes.size()].unlock(); },
-        std::placeholders::_1);
-    tbb::parallel_for(
-        tbb::blocked_range<size_t>(0_uz, p1q2.size(), 32),
-        [&](const tbb::blocked_range<size_t> &range) {
-          for (size_t i = range.begin(); i != range.end(); i++) processFun(i);
-        },
-        ap);
-    return;
-  }
-#endif
   auto processFun = std::bind(
       process, [](size_t _) {}, [](size_t _) {}, std::placeholders::_1);
   for (size_t i = 0; i < p1q2.size(); ++i) processFun(i);
@@ -282,7 +248,7 @@ std::vector<Halfedge> PairUp(std::vector<EdgePos> &edgePos) {
 
 void AppendPartialEdges(Manifold::Impl &outR, Vec<char> &wholeHalfedgeP,
                         Vec<int> &facePtrR,
-                        concurrent_map<int, std::vector<EdgePos>> &edgesP,
+                        std::map<int, std::vector<EdgePos>> &edgesP,
                         Vec<TriRef> &halfedgeRef, const Manifold::Impl &inP,
                         const Vec<int> &i03, const Vec<int> &vP2R,
                         const Vec<int>::IterC faceP2R, bool forward) {
@@ -362,7 +328,7 @@ void AppendPartialEdges(Manifold::Impl &outR, Vec<char> &wholeHalfedgeP,
 
 void AppendNewEdges(
     Manifold::Impl &outR, Vec<int> &facePtrR,
-    concurrent_map<std::pair<int, int>, std::vector<EdgePos>> &edgesNew,
+    std::map<std::pair<int, int>, std::vector<EdgePos>> &edgesNew,
     Vec<TriRef> &halfedgeRef, const Vec<int> &facePQ2R, const int numFaceP) {
   ZoneScoped;
   // Pair up each edge's verts and distribute to faces based on indices in key.
@@ -747,9 +713,9 @@ Manifold::Impl Boolean3::Result(OpType op) const {
 
   // This key is the forward halfedge index of P or Q. Only includes intersected
   // edges.
-  concurrent_map<int, std::vector<EdgePos>> edgesP, edgesQ;
+  std::map<int, std::vector<EdgePos>> edgesP, edgesQ;
   // This key is the face index of <P, Q>
-  concurrent_map<std::pair<int, int>, std::vector<EdgePos>> edgesNew;
+  std::map<std::pair<int, int>, std::vector<EdgePos>> edgesNew;
 
   AddNewEdgeVerts(edgesP, edgesNew, p1q2_, i12, v12R, inP_.halfedge_, true);
   AddNewEdgeVerts(edgesQ, edgesNew, p2q1_, i21, v21R, inQ_.halfedge_, false);

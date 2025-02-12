@@ -17,7 +17,6 @@
 #include <algorithm>
 #include <atomic>
 #include <map>
-#include <optional>
 
 #include "./hashtable.h"
 #include "./mesh_fixes.h"

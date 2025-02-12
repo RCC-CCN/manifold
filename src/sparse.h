@@ -16,7 +16,6 @@
 #include "./parallel.h"
 #include "./utils.h"
 #include "./vec.h"
-#include "manifold/common.h"
 
 namespace {
 template <typename T>

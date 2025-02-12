@@ -15,7 +15,6 @@
 #include <unordered_set>
 
 #include "./impl.h"
-#include "./parallel.h"
 #include "manifold/polygon.h"
 
 namespace manifold {

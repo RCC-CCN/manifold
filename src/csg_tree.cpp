@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "./csg_tree.h"
+
 #include <algorithm>
 
 #include "./boolean3.h"
-#include "./csg_tree.h"
 #include "./impl.h"
 #include "./mesh_fixes.h"
-#include "./parallel.h"
 
 constexpr int kParallelThreshold = 4096;
 

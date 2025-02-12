@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #pragma once
+#include <cstdlib>
 #if TRACY_ENABLE && TRACY_MEMORY_USAGE
 #include "tracy/Tracy.hpp"
 #else
@@ -21,7 +22,6 @@
 #endif
 #include <vector>
 
-#include "./parallel.h"
 #include "manifold/vec_view.h"
 
 namespace manifold {

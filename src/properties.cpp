@@ -15,7 +15,6 @@
 #include <limits>
 
 #include "./impl.h"
-#include "./parallel.h"
 #include "./tri_dist.h"
 
 namespace {

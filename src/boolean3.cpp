@@ -16,8 +16,6 @@
 
 #include <limits>
 
-#include "./parallel.h"
-
 using namespace manifold;
 
 namespace {
