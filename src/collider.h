@@ -18,10 +18,6 @@
 #include "./vec.h"
 #include "manifold/common.h"
 
-#ifdef _MSC_VER
-#include <intrin.h>
-#endif
-
 namespace manifold {
 
 namespace collider_internal {
@@ -31,35 +27,6 @@ constexpr int kLengthMultiple = 4;
 constexpr int kSequentialThreshold = 512;
 // Fundamental constants
 constexpr int kRoot = 1;
-
-#ifdef _MSC_VER
-
-#ifndef _WINDEF_
-typedef unsigned long DWORD;
-#endif
-
-uint32_t inline ctz(uint32_t value) {
-  DWORD trailing_zero = 0;
-
-  if (_BitScanForward(&trailing_zero, value)) {
-    return trailing_zero;
-  } else {
-    // This is undefined, I better choose 32 than 0
-    return 32;
-  }
-}
-
-uint32_t inline clz(uint32_t value) {
-  DWORD leading_zero = 0;
-
-  if (_BitScanReverse(&leading_zero, value)) {
-    return 31 - leading_zero;
-  } else {
-    // Same remarks as above
-    return 32;
-  }
-}
-#endif
 
 constexpr inline bool IsLeaf(int node) { return node % 2 == 0; }
 constexpr inline bool IsInternal(int node) { return node % 2 == 1; }
@@ -76,12 +43,8 @@ struct CreateRadixTree {
   int PrefixLength(uint32_t a, uint32_t b) const {
 // count-leading-zeros is used to find the number of identical highest-order
 // bits
-#ifdef _MSC_VER
-    // return __lzcnt(a ^ b);
-    return clz(a ^ b);
-#else
-    return __builtin_clz(a ^ b);
-#endif
+
+return __builtin_clz(a ^ b);
   }
 
   int PrefixLength(int i, int j) const {
