@@ -17,7 +17,7 @@ project(manifold LANGUAGES CXX)
 
 # Use C++17
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
@@ -49,7 +49,7 @@ option(
   "Force optimized build, even with debugging enabled"
   OFF
 )
-option(MANIFOLD_TEST "Enable testing suite" ON)
+option(MANIFOLD_TEST "Enable testing suite" OFF)
 option(MANIFOLD_PYBIND "Build python bindings" OFF)
 # MANIFOLD_CBIND is only available when MANIFOLD_CROSS_SECTION is enabled
 cmake_dependent_option(

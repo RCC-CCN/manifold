@@ -29,9 +29,6 @@ set(
   smoothing.cpp
   sort.cpp
   subdivision.cpp
-  # optional source files
-  $<$<BOOL:${MANIFOLD_CROSS_SECTION}>:cross_section/cross_section.cpp>
-  $<$<BOOL:${MANIFOLD_EXPORT}>:meshIO/meshIO.cpp>
 )
 
 set(
@@ -50,7 +47,6 @@ set(
   svd.h
   tri_dist.h
   utils.h
-  vec.h
 )
 
 # Include directories
