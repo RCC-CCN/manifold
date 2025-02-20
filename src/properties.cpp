@@ -43,9 +43,9 @@ struct CurvatureAngles {
           0.25 * edgeLength[i] *
           std::asin(la::dot(la::cross(triNormal[tri], triNormal[neighborTri]),
                             edge[i]));
-      AtomicAdd(meanCurvature[startVert], dihedral);
-      AtomicAdd(meanCurvature[endVert], dihedral);
-      AtomicAdd(degree[startVert], 1.0);
+      meanCurvature[startVert] += dihedral;
+      meanCurvature[endVert] += dihedral;
+      degree[startVert] += 1.0;
     }
 
     vec3 phi;
@@ -57,8 +57,8 @@ struct CurvatureAngles {
 
     for (int i : {0, 1, 2}) {
       const int vert = halfedge[3 * tri + i].startVert;
-      AtomicAdd(gaussianCurvature[vert], -phi[i]);
-      AtomicAdd(area[vert], area3);
+      gaussianCurvature[vert] += -phi[i];
+      area[vert] += area3;
     }
   }
 };

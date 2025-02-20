@@ -263,7 +263,7 @@ struct NearSurface {
                                    vMax, tol, level, sdf);
       // Bound the delta of each vert to ensure the tetrahedron cannot invert.
       if (la::all(la::less(la::abs(pos - gridPos), kS * spacing))) {
-        const int idx = AtomicAdd(vertIndex[0], 1);
+        const int idx = (vertIndex[0] += 1);
         vertPos[idx] = Bound(pos, origin, spacing, gridSize);
         gridVert.movedVert = idx;
         for (int j = 0; j < 7; ++j) {
@@ -321,7 +321,7 @@ struct ComputeVerts {
         continue;
       }
 
-      const int idx = AtomicAdd(vertIndex[0], 1);
+      const int idx = (vertIndex[0] += 1);
       const vec3 pos = FindSurface(position, gridVert.distance,
                                    Position(neighborIndex, origin, spacing),
                                    val, tol, level, sdf);
@@ -342,7 +342,7 @@ struct BuildTris {
     const ivec3 verts(edges[tri[0]], edges[tri[1]], edges[tri[2]]);
     if (verts[0] == verts[1] || verts[1] == verts[2] || verts[2] == verts[0])
       return;
-    int idx = AtomicAdd(triIndex[0], 1);
+    int idx = (triIndex[0] += 1);
     triVerts[idx] = verts;
   }
 

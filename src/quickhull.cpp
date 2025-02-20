@@ -260,8 +260,8 @@ std::pair<Vec<Halfedge>, Vec<vec3>> QuickHull::buildMesh(double epsilon) {
   std::for_each(countAt(0_uz), countAt(mesh.halfedges.size()), [&](size_t i) {
     if (mesh.halfedges[i].pairedHalfedge < 0) return;
     if (mesh.faces[mesh.halfedgeToFace[i]].isDisabled()) return;
-    if (AtomicAdd(counts[mesh.halfedgeToFace[i]], 1) > 0) return;
-    int currIndex = AtomicAdd(j, 3);
+    if ((counts[mesh.halfedgeToFace[i]] += 1) > 0) return;
+    int currIndex = (j += 3);
     mapping[i] = currIndex;
     halfedges[currIndex + 0] = mesh.halfedges[i];
     halfedgeToFace[currIndex + 0] = mesh.halfedgeToFace[i];
@@ -290,9 +290,9 @@ std::pair<Vec<Halfedge>, Vec<vec3>> QuickHull::buildMesh(double epsilon) {
 
   // remove unused vertices
   std::for_each(countAt(0_uz), countAt(halfedges.size() / 3), [&](size_t i) {
-    AtomicAdd(counts[halfedges[3 * i].startVert], 1);
-    AtomicAdd(counts[halfedges[3 * i + 1].startVert], 1);
-    AtomicAdd(counts[halfedges[3 * i + 2].startVert], 1);
+    counts[halfedges[3 * i].startVert] += 1;
+    counts[halfedges[3 * i + 1].startVert] += 1;
+    counts[halfedges[3 * i + 2].startVert] += 1;
   });
   auto saturate = [](int c) { return c > 0 ? 1 : 0; };
   std::exclusive_scan(TransformIterator(counts.begin(), saturate),

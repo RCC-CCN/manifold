@@ -51,21 +51,17 @@ struct DuplicateVerts {
   }
 };
 
-template <bool atomic>
 struct CountVerts {
   VecView<Halfedge> halfedges;
   VecView<int> count;
   VecView<const int> inclusion;
 
   void operator()(size_t i) {
-    if (atomic)
-      AtomicAdd(count[i / 3], std::abs(inclusion[halfedges[i].startVert]));
-    else
-      count[i / 3] += std::abs(inclusion[halfedges[i].startVert]);
+    count[i / 3] += std::abs(inclusion[halfedges[i].startVert]);
   }
 };
 
-template <const bool inverted, const bool atomic>
+template <const bool inverted>
 struct CountNewVerts {
   VecView<int> countP;
   VecView<int> countQ;
@@ -77,18 +73,10 @@ struct CountNewVerts {
     int edgeP = pq.Get(idx, inverted);
     int faceQ = pq.Get(idx, !inverted);
     int inclusion = std::abs(i12[idx]);
-
-    if (atomic) {
-      AtomicAdd(countQ[faceQ], inclusion);
-      const Halfedge half = halfedges[edgeP];
-      AtomicAdd(countP[edgeP / 3], inclusion);
-      AtomicAdd(countP[half.pairedHalfedge / 3], inclusion);
-    } else {
-      countQ[faceQ] += inclusion;
-      const Halfedge half = halfedges[edgeP];
-      countP[edgeP / 3] += inclusion;
-      countP[half.pairedHalfedge / 3] += inclusion;
-    }
+    countQ[faceQ] += inclusion;
+    const Halfedge half = halfedges[edgeP];
+    countP[edgeP / 3] += inclusion;
+    countP[half.pairedHalfedge / 3] += inclusion;
   }
 };
 
@@ -104,16 +92,16 @@ std::tuple<Vec<int>, Vec<int>> SizeOutput(
   auto sidesPerFaceQ = sidesPerFacePQ.view(inP.NumTri(), inQ.NumTri());
 
   std::for_each(countAt(0_uz), countAt(inP.halfedge_.size()),
-                CountVerts<false>({inP.halfedge_, sidesPerFaceP, i03}));
+                CountVerts({inP.halfedge_, sidesPerFaceP, i03}));
   std::for_each(countAt(0_uz), countAt(inQ.halfedge_.size()),
-                CountVerts<false>({inQ.halfedge_, sidesPerFaceQ, i30}));
+                CountVerts({inQ.halfedge_, sidesPerFaceQ, i30}));
 
   std::for_each_n(countAt(0), i12.size(),
-                  CountNewVerts<false, false>({sidesPerFaceP, sidesPerFaceQ,
-                                               i12, p1q2, inP.halfedge_}));
+                  CountNewVerts<false>({sidesPerFaceP, sidesPerFaceQ, i12, p1q2,
+                                        inP.halfedge_}));
   std::for_each_n(countAt(0), i21.size(),
-                  CountNewVerts<true, false>({sidesPerFaceQ, sidesPerFaceP, i21,
-                                              p2q1, inQ.halfedge_}));
+                  CountNewVerts<true>({sidesPerFaceQ, sidesPerFaceP, i21, p2q1,
+                                       inQ.halfedge_}));
 
   Vec<int> facePQ2R(inP.NumTri() + inQ.NumTri() + 1, 0);
   auto keepFace = TransformIterator(sidesPerFacePQ.begin(),
@@ -408,8 +396,8 @@ struct DuplicateHalfedges {
     const TriRef backwardRef = {forward ? 0 : 1, -1, faceRightP};
 
     for (int i = 0; i < std::abs(inclusion); ++i) {
-      int forwardEdge = AtomicAdd(facePtr[newFace], 1);
-      int backwardEdge = AtomicAdd(facePtr[faceRight], 1);
+      int forwardEdge = (facePtr[newFace] += 1);
+      int backwardEdge = (facePtr[faceRight] += 1);
       halfedge.pairedHalfedge = backwardEdge;
 
       halfedgesR[forwardEdge] = halfedge;

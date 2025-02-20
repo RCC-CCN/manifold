@@ -186,7 +186,7 @@ struct BuildInternalBoxes {
     do {
       node = nodeParent_[node];
       int internal = Node2Internal(node);
-      if (AtomicAdd(counter_[internal], 1) == 0) return;
+      if ((counter_[internal] += 1) == 0) return;
       nodeBBox_[node] = nodeBBox_[internalChildren_[internal].first].Union(
           nodeBBox_[internalChildren_[internal].second]);
     } while (node != kRoot);

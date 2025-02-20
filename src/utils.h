@@ -60,23 +60,6 @@ void Permute(std::vector<T>& inOut, const Vec<T1>& new2Old) {
 }
 
 template <typename T>
-T AtomicAdd(T& target, T add) {
-  std::atomic<T>& tar = reinterpret_cast<std::atomic<T>&>(target);
-  T old_val = tar.load();
-  while (!tar.compare_exchange_weak(old_val, old_val + add,
-                                    std::memory_order_seq_cst)) {
-  }
-  return old_val;
-}
-
-template <>
-inline int AtomicAdd(int& target, int add) {
-  std::atomic<int>& tar = reinterpret_cast<std::atomic<int>&>(target);
-  int old_val = tar.fetch_add(add, std::memory_order_seq_cst);
-  return old_val;
-}
-
-template <typename T>
 class ConcurrentSharedPtr {
  public:
   ConcurrentSharedPtr(T value) : impl(std::make_shared<T>(value)) {}
