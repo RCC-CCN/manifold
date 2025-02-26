@@ -28,14 +28,9 @@ using namespace manifold;
 
 constexpr uint64_t kRemove = std::numeric_limits<uint64_t>::max();
 
-void AtomicAddVec3(vec3& target, const vec3& add) {
+void AddVec3(vec3& target, const vec3& add) {
   for (int i : {0, 1, 2}) {
-    std::atomic<double>& tar =
-        reinterpret_cast<std::atomic<double>&>(target[i]);
-    double old_val = tar.load(std::memory_order_relaxed);
-    while (!tar.compare_exchange_weak(old_val, old_val + add[i],
-                                      std::memory_order_relaxed)) {
-    }
+    target[i] += add[i];
   }
 }
 
@@ -79,7 +74,7 @@ struct AssignNormals {
 
     // assign weighted sum
     for (int i : {0, 1, 2}) {
-      AtomicAddVec3(vertNormal[triVerts[i]], phi[i] * triNormal);
+      AddVec3(vertNormal[triVerts[i]], phi[i] * triNormal);
     }
   }
 };
@@ -208,10 +203,10 @@ void DedupePropVerts(manifold::Vec<ivec3>& triProp,
 
 namespace manifold {
 
-std::atomic<uint32_t> Manifold::Impl::meshIDCounter_(1);
+uint32_t Manifold::Impl::meshIDCounter_(1);
 
 uint32_t Manifold::Impl::ReserveIDs(uint32_t n) {
-  return Manifold::Impl::meshIDCounter_.fetch_add(n, std::memory_order_relaxed);
+  return Manifold::Impl::meshIDCounter_ += n;
 }
 
 /**

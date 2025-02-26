@@ -14,7 +14,6 @@
 // limitations under the License.
 
 #pragma once
-#include <atomic>
 #include <memory>
 #include <mutex>
 #include <unordered_map>

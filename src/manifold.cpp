@@ -19,7 +19,6 @@
 #include "./boolean3.h"
 #include "./csg_tree.h"
 #include "./impl.h"
-#include "./parallel.h"
 
 namespace {
 using namespace manifold;

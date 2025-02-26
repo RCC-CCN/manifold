@@ -85,9 +85,8 @@ struct UpdateProperties {
       }
       const int propVert = triProp[tri][i];
 
-      auto old = std::atomic_exchange(
-          reinterpret_cast<std::atomic<uint8_t>*>(&counters[propVert]),
-          static_cast<uint8_t>(1));
+      auto old = counters[propVert];
+      counters[propVert] = 1;
       if (old == 1) continue;
 
       for (int p = 0; p < oldNumProp; ++p) {
@@ -189,7 +188,6 @@ bool Manifold::Impl::IsSelfIntersecting() const {
   GetFaceBoxMorton(faceBox, faceMorton);
   SparseIndices collisions = collider_.Collisions<true>(faceBox.cview());
 
-  const bool verbose = ManifoldParams().verbose;
   return !std::all_of(countAt(0), countAt(collisions.size()), [&](size_t i) {
     size_t x = collisions.Get(i, false);
     size_t y = collisions.Get(i, true);
