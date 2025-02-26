@@ -7,17 +7,13 @@
     // Update 'LLVM_VER' to pick clang version. Options: [10, 11, 12, 13, 14, 15, 16, 17]. Default: 17
     // Update 'USE_CLANG' to set clang as the default C and C++ compiler. Options: [1, null]. Default null
     "args": {
-      "VARIANT": "jammy",
-      "GCC_VER": "13",
-      "LLVM_VER": "17",
+      "VARIANT": "noble",
+      "GCC_VER": "14",
+      "LLVM_VER": "18",
       "USE_CLANG": "1"
     }
   },
   "features": {
-    "ghcr.io/devcontainers/features/common-utils:2": {
-      "username": "user",
-      "configureZshAsDefaultShell": true
-    },
     "ghcr.io/devcontainers/features/git:1": {}
   },
   // Needed when using a ptrace-based debugger like C++, Go, and Rust
@@ -28,7 +24,7 @@
     "seccomp=unconfined"
   ],
   // Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
-  "remoteUser": "user",
+  //"remoteUser": "user",
   // Use 'postCreateCommand' to run commands after the container is created.
   "postCreateCommand": "id && git --version && gcc --version && clang --version && cmake --version && echo $CXX",
   // Configure tool-specific properties.

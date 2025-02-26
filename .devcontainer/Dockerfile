@@ -1,5 +1,5 @@
 # [Choice] bionic (18.04), focal (20.04), jammy (22.04)
-ARG VARIANT="jammy"
+ARG VARIANT="noble"
 FROM ubuntu:${VARIANT}
 
 # Restate the variant to use it later on in the llvm and cmake installations
@@ -14,8 +14,8 @@ RUN apt-get update -qq && export DEBIAN_FRONTEND=noninteractive && \
         make ninja-build 
 
 # User-settable versions:
-# This Dockerfile should support gcc-[7, 8, 9, 10, 11, 12, 13] and clang-[10, 11, 12, 13. 14, 15, 16, 17]
-ARG GCC_VER="13"
+# This Dockerfile should support gcc-[7, 8, 9, 10, 11, 12, 13, 14] and clang-[10, 11, 12, 13. 14, 15, 16, 17]
+ARG GCC_VER="14"
 # Add gcc-${GCC_VER}
 RUN add-apt-repository -y ppa:ubuntu-toolchain-r/test
 RUN apt-get update -qq && export DEBIAN_FRONTEND=noninteractive && \
@@ -26,7 +26,7 @@ RUN apt-get update -qq && export DEBIAN_FRONTEND=noninteractive && \
 RUN update-alternatives --install /usr/bin/gcc gcc $(which gcc-${GCC_VER}) 100
 RUN update-alternatives --install /usr/bin/g++ g++ $(which g++-${GCC_VER}) 100
 
-ARG LLVM_VER="17"
+ARG LLVM_VER="18"
 # Add clang-${LLVM_VER}
 ARG LLVM_URL="http://apt.llvm.org/${VARIANT}/"
 ARG LLVM_PKG="llvm-toolchain-${VARIANT}-${LLVM_VER}"
@@ -68,10 +68,7 @@ RUN apt-get update -qq && export DEBIAN_FRONTEND=noninteractive && \
 RUN apt-get update -qq && export DEBIAN_FRONTEND=noninteractive && \
     apt-get install -y --no-install-recommends \
         libclipper-dev libassimp-dev \
-        pkg-config libpython3-dev python3 python3-distutils python3-pip
-
-# Install trimesh and pytest
-RUN pip3 install trimesh pytest
+        pkg-config libpython3-dev python3 python3-pip
 
 # Cleanup cached apt data we don't need anymore
 RUN apt-get autoremove -y && apt-get clean && \
