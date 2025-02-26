@@ -387,10 +387,8 @@ Vec<int> Manifold::Impl::VertHalfedge() const {
   Vec<uint8_t> counters(NumVert(), 0);
   std::for_each_n(countAt(0), halfedge_.size(),
                   [&vertHalfedge, &counters, this](const int idx) {
-                    auto old = std::atomic_exchange(
-                        reinterpret_cast<std::atomic<uint8_t>*>(
-                            &counters[halfedge_[idx].startVert]),
-                        static_cast<uint8_t>(1));
+                    auto old = counters[halfedge_[idx].startVert];
+                    counters[halfedge_[idx].startVert] = 1;
                     if (old == 1) return;
                     // arbitrary, last one wins.
                     vertHalfedge[halfedge_[idx].startVert] = idx;
