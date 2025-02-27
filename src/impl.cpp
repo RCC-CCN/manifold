@@ -15,7 +15,6 @@
 #include "./impl.h"
 
 #include <algorithm>
-#include <atomic>
 #include <map>
 
 #include "./hashtable.h"
@@ -153,9 +152,7 @@ struct CheckCoplanarity {
 
   void operator()(int tri) {
     const int component = (*components)[tri];
-    const int referenceTri =
-        reinterpret_cast<std::atomic<int>*>(&comp2tri[component])
-            ->load(std::memory_order_relaxed);
+    const int referenceTri = comp2tri[component];
     if (referenceTri < 0 || referenceTri == tri) return;
 
     const vec3 origin = vertPos[halfedge[3 * referenceTri].startVert];
@@ -169,8 +166,7 @@ struct CheckCoplanarity {
       // triangle, unmark the entire component so that none of its triangles are
       // marked coplanar.
       if (std::abs(la::dot(normal, vert - origin)) > tolerance) {
-        reinterpret_cast<std::atomic<int>*>(&comp2tri[component])
-            ->store(-1, std::memory_order_relaxed);
+        comp2tri[component] = -1;
         break;
       }
     }
@@ -266,8 +262,7 @@ void Manifold::Impl::RemoveUnreferencedVerts() {
   Vec<int> keep(numVert, 0);
   std::for_each(halfedge_.cbegin(), halfedge_.cend(), [&keep](Halfedge h) {
     if (h.startVert >= 0) {
-      reinterpret_cast<std::atomic<int>*>(&keep[h.startVert])
-          ->store(1, std::memory_order_relaxed);
+      keep[h.startVert] = 1;
     }
   });
 

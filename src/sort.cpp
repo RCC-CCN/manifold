@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <atomic>
 #include <set>
 
 #include "./impl.h"
@@ -46,8 +45,7 @@ struct MarkProp {
 
   void operator()(ivec3 triProp) {
     for (const int i : {0, 1, 2}) {
-      reinterpret_cast<std::atomic<int>*>(&keep[triProp[i]])
-          ->store(1, std::memory_order_relaxed);
+      keep[triProp[i]] = 1;
     }
   }
 };
