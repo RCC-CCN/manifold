@@ -231,12 +231,6 @@ class Manifold {
   ///@{
   Polygons Slice(double height = 0) const;
   Polygons Project() const;
-  static Manifold Extrude(const Polygons& crossSection, double height,
-                          int nDivisions = 0, double twistDegrees = 0.0,
-                          vec2 scaleTop = vec2(1.0));
-  static Manifold Revolve(const Polygons& crossSection,
-                          int circularSegments = 0,
-                          double revolveDegrees = 360.0f);
   ///@}
 
   enum class Error {
