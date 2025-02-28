@@ -227,9 +227,6 @@ class Manifold {
                            double radiusHigh = -1.0, int circularSegments = 0,
                            bool center = false);
   static Manifold Sphere(double radius, int circularSegments = 0);
-  static Manifold LevelSet(std::function<double(vec3)> sdf, Box bounds,
-                           double edgeLength, double level = 0,
-                           double tolerance = -1, bool canParallel = true);
   ///@}
 
   /** @name Polygons
