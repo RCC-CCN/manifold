@@ -15,7 +15,9 @@
 #include "./impl.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <map>
+#include <unordered_map>
 
 #include "./hashtable.h"
 #include "./mesh_fixes.h"
@@ -76,12 +78,6 @@ struct AssignNormals {
       AddVec3(vertNormal[triVerts[i]], phi[i] * triNormal);
     }
   }
-};
-
-struct UpdateMeshID {
-  const HashTableD<uint32_t> meshIDold2new;
-
-  void operator()(TriRef& ref) { ref.meshID = meshIDold2new[ref.meshID]; }
 };
 
 struct CoplanarEdge {
@@ -591,20 +587,23 @@ void Manifold::Impl::CalculateNormals() {
  * instances of these meshes.
  */
 void Manifold::Impl::IncrementMeshIDs() {
-  HashTable<uint32_t> meshIDold2new(meshRelation_.meshIDtransform.size() * 2);
+  std::unordered_map<uint64_t, uint32_t> meshIDold2new(
+      meshRelation_.meshIDtransform.size() * 2);
   // Update keys of the transform map
   std::map<int, Relation> oldTransforms;
   std::swap(meshRelation_.meshIDtransform, oldTransforms);
   const int numMeshIDs = oldTransforms.size();
   int nextMeshID = ReserveIDs(numMeshIDs);
   for (const auto& pair : oldTransforms) {
-    meshIDold2new.D().Insert(pair.first, nextMeshID);
+    meshIDold2new.insert(pair.first, nextMeshID);
     meshRelation_.meshIDtransform[nextMeshID++] = pair.second;
   }
 
   const size_t numTri = NumTri();
   std::for_each_n(meshRelation_.triRef.begin(), numTri,
-                  UpdateMeshID({meshIDold2new.D()}));
+                  [&meshIDold2new](TriRef& ref) {
+                    ref.meshID = meshIDold2new.at(ref.meshID);
+                  });
 }
 
 /**
