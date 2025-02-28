@@ -223,10 +223,6 @@ class Manifold {
   static Manifold Compose(const std::vector<Manifold>&);
   static Manifold Tetrahedron();
   static Manifold Cube(vec3 size = vec3(1.0), bool center = false);
-  static Manifold Cylinder(double height, double radiusLow,
-                           double radiusHigh = -1.0, int circularSegments = 0,
-                           bool center = false);
-  static Manifold Sphere(double radius, int circularSegments = 0);
   ///@}
 
   /** @name Polygons
