@@ -25,7 +25,6 @@ set(
   polygon.cpp
   properties.cpp
   quickhull.cpp
-  sdf.cpp
   smoothing.cpp
   sort.cpp
   subdivision.cpp
